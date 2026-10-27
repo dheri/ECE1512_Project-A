@@ -1,0 +1,36 @@
+{
+  "status": "passed",
+  "pdf": "report/ECE1512_ProjectA_Report.pdf",
+  "pages": 14,
+  "limit": 20,
+  "bytes": 2970861,
+  "sha256": "ce518824204c0f5fe489f87c651f77c8b8c52088ad924d68abd1824db0f189b9",
+  "author": "Parteek Dheri",
+  "vector_text": true,
+  "all_pages_rendered_and_visually_inspected": true,
+  "equations_reinspected_after_glyph_correction": true,
+  "missing_font_glyph_guard": "passed during final build",
+  "text_outside_page_bounds": 0,
+  "replacement_characters": 0,
+  "reference_ids": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+  ],
+  "watermark": false,
+  "temporary_conversion_script_removed": true,
+  "publication": "Repository URL included; final review and Quercus submission pending.",
+  "raw_features_bundled": false,
+  "repository_url": "https://github.com/dheri/ECE1512_Project-A",
+  "repository_link_pages_reinspected": [
+    1,
+    13
+  ]
+}

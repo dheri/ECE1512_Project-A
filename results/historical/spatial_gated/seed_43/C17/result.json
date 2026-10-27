@@ -1,0 +1,54 @@
+{
+  "dataset": "CAMELYON17",
+  "dataset_key": "C17",
+  "run_mode": "extension",
+  "classes": 4,
+  "epochs": 30,
+  "best_epoch": 8,
+  "validation_slides": 30,
+  "test_slides": 200,
+  "validation_accuracy_pct": 89.99999761581421,
+  "test_accuracy_pct": 82.99999833106995,
+  "test_macro_auroc": 0.8675267696380615,
+  "test_macro_f1": 0.6192772388458252,
+  "test_loss": 0.5567534827743656,
+  "validation_pngs": 30,
+  "warnings": [
+    "CAMELYON17 uses the supplied center-held-out test split and slide-level 4-class labels, not official challenge patient-level staging.",
+    "The existing slide-level validation split shares 27 patients with training. Validation is not patient-independent; the baseline retains the existing split for reproducibility."
+  ],
+  "method": "abmil_spatial_gated",
+  "training_extension": {
+    "method": "spatial_context",
+    "neighbors": 8,
+    "coordinate_mode": "real",
+    "shuffle_seed": 42,
+    "cache_entries": 16,
+    "objective": "CrossEntropyLoss",
+    "context": "h + sigmoid(Linear(concat(h, mean_neighbor_h))) * Linear(ReLU(Linear(concat(h, mean_neighbor_h)))); hidden width D_inner.",
+    "initialization": "Zero final context layer; zero gate weights and logit(initial_probability) gate bias; preserve baseline initialization RNG.",
+    "graph": "Canonical-coordinate cKDTree kNN, Euclidean input units, exclude self; schema 1.",
+    "small_bags": "min(k, N-1) neighbors; singleton neighbor mean is zero.",
+    "duplicates": "Reject duplicate coordinates rather than invent an ordering.",
+    "shuffle": "Fixed per slide ID and shuffle_seed, assigned in canonical coordinate order.",
+    "evaluation": "Full bags, with the same coordinate mode at training and inference.",
+    "gate": {
+      "type": "per_patch_sigmoid_linear",
+      "initial_probability": 0.1
+    }
+  },
+  "resource_profile": {
+    "model_parameter_count": 363142,
+    "elapsed_seconds": 348.35733455599984,
+    "peak_cuda_allocated_mib": 484.4501953125,
+    "train_eval_graph_cache": {
+      "memory_hits": 0,
+      "disk_hits": 8701,
+      "graphs_built": 499,
+      "build_seconds": 5.881392839006821,
+      "memory_entries": 16,
+      "memory_bytes": 13798464
+    },
+    "note": "Elapsed time includes audit, train/validation, final evaluation, and image export."
+  }
+}

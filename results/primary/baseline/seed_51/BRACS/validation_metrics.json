@@ -1,0 +1,10 @@
+{
+  "auc": 0.827431857585907,
+  "acc": 56.45161271095276,
+  "f1": 0.45736896991729736,
+  "loss": 1.4590891898204121,
+  "n_slides": 62,
+  "accuracy_unit": "percent",
+  "auc_average": "macro_one_vs_rest",
+  "f1_average": "macro"
+}

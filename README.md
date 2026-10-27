@@ -13,7 +13,7 @@ ABMIL baseline evaluation on CAMELYON16, CAMELYON17 and BRACS, with full-to-mask
 - **Separate report/code checklists:** [REPRODUCIBILITY.md](REPRODUCIBILITY.md)
 - **Attribution:** [ATTRIBUTION.md](ATTRIBUTION.md)
 
-This is a local review repository. Files remain uncommitted for review, no remote is configured, and nothing has been published or submitted. The rubric requires a GitHub URL in the report. Insert the real URL after publication is approved; the current report explicitly marks it pending.
+Repository: [dheri/ECE1512_Project-A](https://github.com/dheri/ECE1512_Project-A). The report remains a review draft and has not been submitted to Quercus. Ensure graders can access the repository before final submission.
 
 ## Study
 
@@ -124,4 +124,4 @@ Edit `report/report.md` for prose, citations and layout. Tables are generated fr
 
 `python scripts/package_manifest.py` verifies the current package fingerprints. After an intentional reviewed edit, refresh them with `python scripts/package_manifest.py --write`.
 
-Before final submission: review the report, confirm any course-specific disclosure requirements, approve publication, insert the actual GitHub URL, and rerun the report/package checks. This repository has not been uploaded to GitHub or Quercus.
+Before final submission: review the report, confirm any course-specific disclosure requirements, check repository access for graders, and rerun the report/package checks. The repository URL is included in the report; Quercus submission remains pending.

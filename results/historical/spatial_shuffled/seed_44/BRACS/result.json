@@ -1,0 +1,47 @@
+{
+  "dataset": "BRACS",
+  "dataset_key": "BRACS",
+  "run_mode": "extension",
+  "classes": 7,
+  "epochs": 30,
+  "best_epoch": 4,
+  "validation_slides": 62,
+  "test_slides": 86,
+  "validation_accuracy_pct": 51.61290168762207,
+  "test_accuracy_pct": 41.860464215278625,
+  "test_macro_auroc": 0.7989742159843445,
+  "test_macro_f1": 0.3367530405521393,
+  "test_loss": 1.335575575461113,
+  "validation_pngs": 62,
+  "warnings": [],
+  "method": "abmil_spatial_shuffled",
+  "training_extension": {
+    "method": "spatial_context",
+    "neighbors": 8,
+    "coordinate_mode": "shuffled",
+    "shuffle_seed": 42,
+    "cache_entries": 16,
+    "objective": "CrossEntropyLoss",
+    "context": "h + Linear(ReLU(Linear(concat(h, mean_neighbor_h)))); hidden width D_inner.",
+    "initialization": "Zero final context layer; preserve baseline initialization RNG.",
+    "graph": "Canonical-coordinate cKDTree kNN, Euclidean input units, exclude self; schema 1.",
+    "small_bags": "min(k, N-1) neighbors; singleton neighbor mean is zero.",
+    "duplicates": "Reject duplicate coordinates rather than invent an ordering.",
+    "shuffle": "Fixed per slide ID and shuffle_seed, assigned in canonical coordinate order.",
+    "evaluation": "Full bags, with the same coordinate mode at training and inference."
+  },
+  "resource_profile": {
+    "model_parameter_count": 363400,
+    "elapsed_seconds": 437.0631696060009,
+    "peak_cuda_allocated_mib": 350.2265625,
+    "train_eval_graph_cache": {
+      "memory_hits": 0,
+      "disk_hits": 13141,
+      "graphs_built": 537,
+      "build_seconds": 7.362880825967295,
+      "memory_entries": 16,
+      "memory_bytes": 8470336
+    },
+    "note": "Elapsed time includes audit, train/validation, final evaluation, and image export."
+  }
+}

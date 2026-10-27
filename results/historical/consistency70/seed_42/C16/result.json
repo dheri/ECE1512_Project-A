@@ -1,0 +1,28 @@
+{
+  "dataset": "CAMELYON16",
+  "dataset_key": "C16",
+  "run_mode": "extension",
+  "classes": 2,
+  "epochs": 30,
+  "best_epoch": 2,
+  "validation_slides": 27,
+  "test_slides": 129,
+  "validation_accuracy_pct": 100.0,
+  "test_accuracy_pct": 83.72092843055725,
+  "test_macro_auroc": 0.8561224341392517,
+  "test_macro_f1": 0.8179068565368652,
+  "test_loss": 0.3895810079253676,
+  "validation_pngs": 27,
+  "warnings": [],
+  "method": "abmil_consistency",
+  "training_extension": {
+    "method": "consistency",
+    "keep_fraction": 0.7,
+    "consistency_weight": 1.0,
+    "objective": "CrossEntropyLoss(full) + weight * KL(detached full || masked)",
+    "temperature": 1.0,
+    "sampling": "Uniform without replacement; max(1, floor(N * keep_fraction)).",
+    "mask_rng": "Dedicated CPU torch.Generator seeded with training_seed.",
+    "evaluation": "Full bags; no patch masking or consistency loss."
+  }
+}

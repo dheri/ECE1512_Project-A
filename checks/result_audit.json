@@ -1,0 +1,21 @@
+{
+  "status": "passed",
+  "primary_runs": 90,
+  "primary_completed_epochs": 2700,
+  "historical_supporting_runs": 108,
+  "paired_rows": 60,
+  "patient_counts_C17": [
+    54,
+    6,
+    40
+  ],
+  "C17_patient_overlap": 0,
+  "prediction_metric_sets_recomputed": 180,
+  "representative_checkpoints": 9,
+  "historical_test_metric_sets_recomputed": 108,
+  "attention_examples_decoded": 6,
+  "notebook_definitions_sha256": "c7fdc641c63142edf4718e742c5b131ece045aa895eae0beb6a41d757717c89d",
+  "max_prediction_metric_absolute_error": 0.0,
+  "external_features_required": false,
+  "new_scientific_training": false
+}

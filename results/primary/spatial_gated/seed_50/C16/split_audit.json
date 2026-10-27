@@ -1,0 +1,32 @@
+{
+  "warnings": [],
+  "splits": {
+    "Train": {
+      "slides": 242,
+      "patches": 2654713,
+      "max_bag_patches": 35730,
+      "class_counts": {
+        "0": 142,
+        "1": 100
+      }
+    },
+    "Validation": {
+      "slides": 27,
+      "patches": 372527,
+      "max_bag_patches": 36617,
+      "class_counts": {
+        "0": 16,
+        "1": 11
+      }
+    },
+    "Test": {
+      "slides": 129,
+      "patches": 1614224,
+      "max_bag_patches": 55917,
+      "class_counts": {
+        "0": 80,
+        "1": 49
+      }
+    }
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "dataset": "CAMELYON17",
+  "dataset_key": "C17",
+  "run_mode": "extension",
+  "classes": 4,
+  "epochs": 30,
+  "best_epoch": 10,
+  "validation_slides": 30,
+  "test_slides": 200,
+  "validation_accuracy_pct": 93.33333373069763,
+  "test_accuracy_pct": 77.99999713897705,
+  "test_macro_auroc": 0.8213330507278442,
+  "test_macro_f1": 0.5237530469894409,
+  "test_loss": 0.7869972551169531,
+  "validation_pngs": 30,
+  "warnings": [
+    "CAMELYON17 uses the supplied center-held-out test split and slide-level 4-class labels, not official challenge patient-level staging.",
+    "The existing slide-level validation split shares 27 patients with training. Validation is not patient-independent; the baseline retains the existing split for reproducibility."
+  ],
+  "method": "abmil_spatial",
+  "training_extension": {
+    "method": "spatial_context",
+    "neighbors": 8,
+    "coordinate_mode": "real",
+    "shuffle_seed": 42,
+    "cache_entries": 16,
+    "objective": "CrossEntropyLoss",
+    "context": "h + Linear(ReLU(Linear(concat(h, mean_neighbor_h)))); hidden width D_inner.",
+    "initialization": "Zero final context layer; preserve baseline initialization RNG.",
+    "graph": "Canonical-coordinate cKDTree kNN, Euclidean input units, exclude self; schema 1.",
+    "small_bags": "min(k, N-1) neighbors; singleton neighbor mean is zero.",
+    "duplicates": "Reject duplicate coordinates rather than invent an ordering.",
+    "shuffle": "Fixed per slide ID and shuffle_seed, assigned in canonical coordinate order.",
+    "evaluation": "Full bags, with the same coordinate mode at training and inference."
+  },
+  "resource_profile": {
+    "model_parameter_count": 362629,
+    "elapsed_seconds": 262.066249892996,
+    "peak_cuda_allocated_mib": 412.3046875,
+    "train_eval_graph_cache": {
+      "memory_hits": 0,
+      "disk_hits": 8701,
+      "graphs_built": 499,
+      "build_seconds": 5.708790597927873,
+      "memory_entries": 16,
+      "memory_bytes": 13798464
+    },
+    "note": "Elapsed time includes audit, train/validation, final evaluation, and image export."
+  }
+}

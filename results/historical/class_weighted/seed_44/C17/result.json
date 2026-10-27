@@ -1,0 +1,29 @@
+{
+  "dataset": "CAMELYON17",
+  "dataset_key": "C17",
+  "run_mode": "extension",
+  "classes": 4,
+  "epochs": 30,
+  "best_epoch": 27,
+  "validation_slides": 30,
+  "test_slides": 200,
+  "validation_accuracy_pct": 76.66666507720947,
+  "test_accuracy_pct": 71.49999737739563,
+  "test_macro_auroc": 0.8082958459854126,
+  "test_macro_f1": 0.48726707696914673,
+  "test_loss": 1.0364856468011567,
+  "validation_pngs": 30,
+  "warnings": [
+    "CAMELYON17 uses the supplied center-held-out test split and slide-level 4-class labels, not official challenge patient-level staging."
+  ],
+  "method": "abmil_class_balanced",
+  "training_extension": {
+    "method": "class_balanced_ce",
+    "objective": "Mean(train_class_weight[label] * CrossEntropyLoss_per_slide)",
+    "weights": "N_train / (n_classes * train_class_count).",
+    "normalization": "Mean over slides, NOT division by batch label-weight sum.",
+    "counts": "Training slides only, after the frozen development partition.",
+    "evaluation": "Full bags; ordinary unweighted CrossEntropyLoss.",
+    "architecture": "Unchanged notebook ABMIL."
+  }
+}
