@@ -14,7 +14,7 @@ ABMIL baseline evaluation on CAMELYON16, CAMELYON17 and BRACS, with full-to-mask
 - **Separate report/code checklists:** [REPRODUCIBILITY.md](REPRODUCIBILITY.md)
 - **Attribution:** [ATTRIBUTION.md](ATTRIBUTION.md)
 
-Repository: [dheri/ECE1512_Project-A](https://github.com/dheri/ECE1512_Project-A). The report remains a review draft and has not been submitted to Quercus. Ensure graders can access the repository before final submission.
+Repository: [dheri/ECE1512_Project-A](https://github.com/dheri/ECE1512_Project-A). This is the prepared submission copy; it has not been uploaded to Quercus. Complete the author's final review and ensure graders can access the repository before submitting.
 
 ## Study
 
@@ -71,6 +71,7 @@ python -m unittest discover -s tests -v
 python scripts/audit_results.py
 python scripts/make_figures.py
 python scripts/make_architecture_figures.py
+python scripts/make_confusion_figures.py
 ```
 
 The real-feature forward test skips clearly when external course features are absent. The included synthetic workflows remain enabled. The audit recomputes both validation and test metrics for every primary run, checks all selected epochs, ordered partitions, paired rows, sample SDs, source fingerprints and representative checkpoint hashes. It also recomputes test metrics for the 108 historical runs. It needs no raw features and performs no scientific training.
@@ -84,7 +85,7 @@ python scripts/build_report.py \
   --output "$(pwd)/outputs/ECE1512_ProjectA_Report.pdf"
 ```
 
-The builder copies the verified PDF into `report/`. It checks the PDF signature, deliberate nine-page layout and the 20-page limit when `pdfinfo` is available. The architecture figure script draws the baseline, masked-view training and spatial adapter without data or training. Inspect the resulting pages after substantive edits; passing the page-count check alone does not prove good layout.
+The builder copies the verified PDF into `report/`. It checks the PDF signature, deliberate ten-page layout and the 20-page limit when `pdfinfo` is available. The architecture figure script draws the baseline and both adaptations. The confusion figure script validates all 90 saved test matrices against predictions, checks the reported accuracies, and generates the nine-panel comparison plus larger dataset-specific versions. Its `n` labels count unique slides per true class; cells show ten-seed mean row percentages, not an ensemble or ten times as many independent slides. These scripts need no features, inference or training.
 
 The final poster follows the supplied template's section headings and the lecture's 5120 × 2880, 10 MB digital limit. Rebuild instructions, speaking notes and Q&A preparation are in `presentation/README.md`.
 
@@ -130,3 +131,14 @@ Edit `report/report_lecture.md` for the current report's prose, citations and la
 `python scripts/package_manifest.py` verifies the current package fingerprints. After an intentional reviewed edit, refresh them with `python scripts/package_manifest.py --write`.
 
 Before final submission: review the report, confirm any course-specific disclosure requirements, check repository access for graders, and rerun the report/package checks. The repository URL is included in the report; Quercus submission remains pending.
+
+## Build submission files
+
+After the final checks and an intentional manifest refresh, create separate report and code files:
+
+```bash
+python scripts/package_manifest.py
+python scripts/build_submission.py --output-dir outputs/submission
+```
+
+The builder refuses to overwrite existing delivery files. It verifies every package fingerprint, copies the final report, builds `ECE1512_ProjectA_Code.zip`, and checks every ZIP member against its source hash. The ZIP contains this repository's packaged files, not `.git`, raw features, credentials, temporary files or new training outputs. Keep the separately supplied report PDF as the report submission. Poster materials are included in the code package for the later presentation requirement.

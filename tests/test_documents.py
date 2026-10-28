@@ -14,10 +14,10 @@ import build_report
 
 
 class DocumentTests(unittest.TestCase):
-    def test_report_has_nine_deliberate_pages(self):
+    def test_report_has_ten_deliberate_pages(self):
         definition, pages = build_report.definition()
-        self.assertEqual(pages, 9)
-        self.assertEqual(sum(n.get("pageBreak") == "before" for n in definition["content"]), 8)
+        self.assertEqual(pages, 10)
+        self.assertEqual(sum(n.get("pageBreak") == "before" for n in definition["content"]), 9)
         self.assertNotIn("watermark", definition)
         self.assertEqual(definition["info"]["author"], "Parteek Dheri")
 
@@ -74,6 +74,25 @@ class DocumentTests(unittest.TestCase):
         self.assertEqual(reference["fontSize"], 9)
         ordinary = build_report.parse("A body paragraph.")[0]
         self.assertNotIn("fontSize", ordinary)
+
+    def test_report_includes_nine_confusions_and_unique_supports(self):
+        text = (ROOT / "report/report_lecture.md").read_text()
+        self.assertIn("(figures/all_nine_confusions.png)", text)
+        self.assertIn("n labels count unique test slides", text)
+        summary = json.loads((ROOT / "report/tables/test_confusion_summary.json").read_text())
+        expected = {"C16": [80, 49], "C17": [121, 16, 18, 45],
+                    "BRACS": [6, 16, 9, 11, 12, 12, 20]}
+        for dataset, support in expected.items():
+            for method in ["baseline", "consistency90", "spatial_gated"]:
+                self.assertEqual(summary[dataset][method]["support"], support)
+        for name in ["all_nine", "C16", "C17", "BRACS"]:
+            path = ROOT / f"report/figures/{name}_confusions.png"
+            self.assertEqual(path.read_bytes()[:8], b"\x89PNG\r\n\x1a\n")
+
+    def test_submission_builder_help_needs_no_machine_learning_environment(self):
+        result = subprocess.run([sys.executable, str(ROOT / "scripts/build_submission.py"), "--help"],
+                                capture_output=True, text=True, check=False)
+        self.assertEqual(result.returncode, 0, result.stderr)
 
     def test_poster_uses_lecture_aspect_ratio_and_embedded_images(self):
         definition = build_poster.definition(ROOT / "presentation/poster.md")

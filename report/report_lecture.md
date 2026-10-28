@@ -155,7 +155,17 @@ Table 4. Paired extension-minus-baseline changes. Accuracy uses percentage point
 
 <!-- page -->
 ## 3. Propose two research ideas and evaluate them
-### 3.5 Experimental observations and justification
+### 3.5 Class-level errors across all datasets
+
+![Figure 7. Nine test confusion matrices. Rows are true classes; columns are predictions. Cells show mean row percentages over seeds 42–51, not ensemble predictions. The n labels count unique test slides per class and apply to all three methods; repeated seeds do not add independent slides.](figures/all_nine_confusions.png)
+
+- **C16:** Spatial reduces normal-to-tumor errors from 6.50% to 3.25%; mean tumor recall stays 78.16%.
+- **C17:** With spatial, class-1/2 recall remains 11.88%/22.78%; 67.50% of class 1 is predicted as class 0.
+- **BRACS:** Spatial raises class-4 recall from 18.33% to 30.00%, but lowers class-5 recall from 56.67% to 44.17%.
+
+<!-- page -->
+## 3. Propose two research ideas and evaluate them
+### 3.6 Experimental observations and justification
 
 **Minority classes remain a failure case.** C17 classes 0 and 3 account for 166/200 test slides. Spatial context improves class-1 and class-2 recall, but their absolute values remain low. There is only one class-1 validation slide, making selection fragile.
 
@@ -180,7 +190,7 @@ Table 5. C17 mean per-seed class recall; support is fixed across seeds.
 <!-- page -->
 ## Reproducibility and references
 
-**Report checklist.** Five-paper comparison and research questions; baseline model/training; splits and checkpoint rule; test metrics and curves; attention selection; architecture figures and prior-work attribution; both proposal designs; paired results, negative findings and limitations are documented.
+**Report checklist.** Five-paper comparison and research questions; baseline model/training; splits and checkpoint rule; test metrics, curves and all nine confusion matrices; attention selection; architecture figures and prior-work attribution; both proposal designs; paired results, negative findings and limitations are documented.
 
 **Code checklist.** Completed notebook, frozen splits, 90 primary prediction/history sets, 108 separate historical result sets, nine representative seed-42 checkpoints, figure sources, tests and result audit are included. Raw features/WSIs and the other checkpoints are not bundled. See `DATA.md` and `REPRODUCIBILITY.md`.
 

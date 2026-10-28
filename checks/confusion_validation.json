@@ -1,0 +1,57 @@
+{
+  "status": "passed",
+  "saved_runs_checked": 90,
+  "datasets": [
+    "C16",
+    "C17",
+    "BRACS"
+  ],
+  "methods": [
+    "baseline",
+    "consistency90",
+    "spatial_gated"
+  ],
+  "seeds": [
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50,
+    51
+  ],
+  "matrices_equal_saved_predictions": true,
+  "predictions_equal_probability_argmax": true,
+  "same_test_slide_order_and_labels": true,
+  "accuracies_match_primary_results": true,
+  "text_within_figure_bounds": true,
+  "row_percentage_sums": 100,
+  "count_definition": "Unique test slides per true class, shared across methods and seeds.",
+  "percentage_definition": "Mean per-seed row-normalized test confusion, not ensemble predictions.",
+  "supports": {
+    "C16": [
+      80,
+      49
+    ],
+    "C17": [
+      121,
+      16,
+      18,
+      45
+    ],
+    "BRACS": [
+      6,
+      16,
+      9,
+      11,
+      12,
+      12,
+      20
+    ]
+  },
+  "summary": "report/tables/test_confusion_summary.json",
+  "new_scientific_training": false
+}

@@ -9,6 +9,7 @@
 - [x] State available feature counts, dimensions, split sizes and uncertain provenance.
 - [x] Describe the encoder/aggregator/classifier and all actual training settings.
 - [x] Report baseline accuracy, macro AUROC, macro F1, test CE and loss curves.
+- [x] Show all nine test confusion matrices with unique class sample sizes and ten-seed mean row percentages; verify each saved matrix against predictions.
 - [x] Specify two research proposals and evaluate both on three datasets.
 - [x] Report all ten primary seeds, paired differences and sample SD, not only a best run.
 - [x] Separate historical and primary C17 cohorts.
@@ -29,6 +30,7 @@
 - [x] Provide feature acquisition instructions and exact feature/split fingerprints.
 - [x] Record dependency versions and GPU/CPU execution settings.
 - [x] Regenerate tables and analytical plots without training.
+- [x] Provide a manifest-verified submission archive builder and separate report PDF.
 - [x] Recompute saved metrics and verify representative artifact/source hashes.
 - [x] Run synthetic workflows without raw features; skip the clearly labeled optional real-data test when its files are absent.
 - [x] Require explicit confirmation and a new output directory before reproduction training.
