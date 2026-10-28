@@ -6,7 +6,8 @@ ABMIL baseline evaluation on CAMELYON16, CAMELYON17 and BRACS, with full-to-mask
 
 ## Start here
 
-- **Report:** [PDF](report/ECE1512_ProjectA_Report.pdf), [editable source](report/report.md)
+- **Report:** [PDF](report/ECE1512_ProjectA_Report.pdf), [current editable source](report/report_lecture.md), organized under Lecture 5's three assignment sections
+- **Final presentation:** [poster and oral-presentation materials](presentation/README.md)
 - **Main evidence:** [90-run table](results/primary/all_runs.csv), [paired differences](results/primary/paired_comparison.csv)
 - **Completed notebook:** [ECE1512_ProjectA_Working.ipynb](ECE1512_ProjectA_Working.ipynb)
 - **Data acquisition and provenance:** [DATA.md](DATA.md)
@@ -33,6 +34,7 @@ All primary C17 partitions are patient-disjoint. The earlier 108 runs are kept u
 
 ```text
 report/                  Editable report, PDF, source figures and generated tables
+presentation/            Final poster, editable content, speaking notes and Q&A
 reference_splits/        Ordered final split lists and reference configurations
 dataset_csv/             Pseudonymous slide metadata used by the loader
 results/primary/         Results, histories and saved predictions for all 90 primary runs
@@ -40,7 +42,7 @@ results/historical/      Results and test predictions for 108 earlier supporting
 checkpoints/             Nine representative seed-42 checkpoints and their hashes
 provenance/              Source and artifact fingerprints
 checks/                  Saved audit and validation summaries
-scripts/                 Figure generation, report build, and result audit
+scripts/                 Figure generation, report/poster builds and result audit
 tests/                   Synthetic model, objective and workflow tests
 reproduce.py             Portable, explicit new-training entry point
 ```
@@ -81,7 +83,9 @@ python scripts/build_report.py \
   --output "$(pwd)/outputs/ECE1512_ProjectA_Report.pdf"
 ```
 
-The builder copies the verified PDF into `report/`. It checks the PDF signature, deliberate 14-page layout and the 20-page limit when `pdfinfo` is available. Inspect the resulting pages after substantive edits; passing the page-count check alone does not prove good layout.
+The builder copies the verified PDF into `report/`. It checks the PDF signature, deliberate eight-page layout and the 20-page limit when `pdfinfo` is available. Inspect the resulting pages after substantive edits; passing the page-count check alone does not prove good layout.
+
+The final poster follows the supplied template's section headings and the lecture's 5120 × 2880, 10 MB digital limit. Rebuild instructions, speaking notes and Q&A preparation are in `presentation/README.md`.
 
 ## Reproduce training
 
@@ -120,7 +124,7 @@ The helper creates a temporary checkpoint/split directory and never changes the 
 
 ## Editing for review
 
-Edit `report/report.md` for prose, citations and layout. Tables are generated from the saved results; do not hand-edit numerical values. Rebuild figures if their presentation changes, then rebuild the PDF and rerun the audit. The `<!-- page -->` and column markers define the editable page layout. Required citations and course-source attribution should remain intact.
+Edit `report/report_lecture.md` for the current report's prose, citations and layout. The previous longer draft remains in `report/report.md` for reference; it is not the source of the current PDF. Tables are generated from the saved results; do not hand-edit numerical values. Rebuild figures if their presentation changes, then rebuild the PDF and rerun the audit. The `<!-- page -->` and column markers define the editable page layout. Edit `presentation/poster.md` for poster text. Required citations and course-source attribution should remain intact.
 
 `python scripts/package_manifest.py` verifies the current package fingerprints. After an intentional reviewed edit, refresh them with `python scripts/package_manifest.py --write`.
 

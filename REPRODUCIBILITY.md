@@ -35,6 +35,8 @@
 
 ## Validation scope
 
+The current report source is `report/report_lecture.md`; the earlier longer draft in `report/report.md` is retained for reference. Poster content, speaking notes and Q&A preparation are under `presentation/`. The poster uses the same primary results and fixed attention selection as the report; it is not a new experiment.
+
 The saved-result audit does not rerun neural inference on all original checkpoints. It verifies predictions, metrics, selected epochs, fingerprints and the representative checkpoint files. The original completed experiment collection was verified before packaging. CPU synthetic regression tests exercise small generated bags, not an additional experimental training cohort.
 
 Feature acquisition, image-level feature extraction, a pristine external test cohort, patient-level confidence intervals, calibration analysis and localization ground truth are outside this submission's completed evidence.
