@@ -144,7 +144,7 @@ def parse(text, width=WIDTH):
 
 
 def definition(source=None):
-    source = source or ROOT / "report/report_lecture.md"
+    source = source or ROOT / "report/report.md"
     pages = source.read_text().split("<!-- page -->")
     content = []
     for number, page in enumerate(pages, 1):
@@ -239,7 +239,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--node", default=shutil.which("node"))
     parser.add_argument("--pdfmake", type=Path, required=True, help="Installed PDF library directory.")
-    parser.add_argument("--source", type=Path, default=ROOT / "report/report_lecture.md")
+    parser.add_argument("--source", type=Path, default=ROOT / "report/report.md")
     parser.add_argument("--workdir", type=Path, default=Path.cwd() / "tmp/report_build")
     parser.add_argument("--output", type=Path, default=Path.cwd() / "outputs/ECE1512_ProjectA_Report.pdf")
     args = parser.parse_args()
