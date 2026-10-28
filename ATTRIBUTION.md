@@ -14,6 +14,10 @@ The clean notebook removes saved execution outputs and automatic package install
 
 The report cites ABMIL, CLAM, DSMIL, TransMIL, DTFD-MIL and the dataset publications. CLAM, DSMIL, TransMIL and DTFD-MIL code and published figures are not copied into this repository. The implemented extensions are not claimed to reproduce those architectures.
 
+Extension attribution also covers Xie et al.'s UDA (NeurIPS 2020), Tang et al.'s MHIM-MIL (ICCV 2023), Chen et al.'s Patch-GCN (MICCAI 2021), Hamilton et al.'s GraphSAGE (NeurIPS 2017), and Srivastava et al.'s Highway Networks (2015). These are established precedents for consistency, masked MIL, spatial aggregation, mean/concatenation and learned gating. They were checked as related work during report revision, not asserted as exact reproductions or as documented pre-implementation sources.
+
+Our masked variant uses random patch deletion, a detached prediction from the same current model, class-probability KL and full-bag CE. Our spatial variant uses one scalar-gated residual correction before ABMIL, not a multilayer survival graph or a coupled Highway carry gate. The contribution is their implementation and controlled evaluation. The report's three architecture figures are original drawings of this implementation, not copied paper figures; no implementation code from these five papers was imported.
+
 Original-paper source checks and bibliographic details are recorded in `provenance/literature_sources.md`. The feature release is credited separately in `DATA.md`.
 
 ## Data and licensing

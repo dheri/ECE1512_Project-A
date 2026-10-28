@@ -14,10 +14,10 @@ import build_report
 
 
 class DocumentTests(unittest.TestCase):
-    def test_report_has_eight_deliberate_pages(self):
+    def test_report_has_nine_deliberate_pages(self):
         definition, pages = build_report.definition()
-        self.assertEqual(pages, 8)
-        self.assertEqual(sum(n.get("pageBreak") == "before" for n in definition["content"]), 7)
+        self.assertEqual(pages, 9)
+        self.assertEqual(sum(n.get("pageBreak") == "before" for n in definition["content"]), 8)
         self.assertNotIn("watermark", definition)
         self.assertEqual(definition["info"]["author"], "Parteek Dheri")
 
@@ -35,6 +35,45 @@ class DocumentTests(unittest.TestCase):
         self.assertTrue(nodes[0]["unbreakable"])
         self.assertTrue(nodes[0]["stack"][0]["image"].startswith("data:image/png;base64,"))
         self.assertEqual(nodes[0]["stack"][1]["text"][0]["text"], "Caption")
+
+    def test_literature_table_gives_contribution_most_space(self):
+        definition, _ = build_report.definition()
+        table = next(node["table"] for node in definition["content"] if "table" in node)
+        widths = table["widths"]
+        self.assertAlmostEqual(sum(widths), build_report.WIDTH - 24)
+        for width, fraction in zip(widths, [.20, .25, .55]):
+            self.assertAlmostEqual(width / sum(widths), fraction)
+        ordinary = build_report.parse("| One | Two |\n| --- | --- |\n| a | b |")
+        self.assertEqual(ordinary[0]["table"]["widths"], ["*", "*"])
+
+    def test_invalid_table_widths_are_rejected(self):
+        table = "\n| One | Two |\n| --- | --- |\n| a | b |"
+        for widths in ["20,25", "0,100", "20,25,55"]:
+            with self.subTest(widths=widths), self.assertRaises(ValueError):
+                build_report.parse(f"<!-- table-widths: {widths} -->" + table)
+        with self.assertRaises(ValueError):
+            build_report.parse("<!-- table-widths: 40,60 -->\nNot a table")
+
+    def test_report_architecture_images_and_extension_sources(self):
+        text = (ROOT / "report/report_lecture.md").read_text()
+        for method in ["baseline", "consistency", "spatial"]:
+            path = ROOT / f"report/figures/architecture_{method}.png"
+            self.assertIn(f"(figures/{path.name})", text)
+            self.assertEqual(path.read_bytes()[:8], b"\x89PNG\r\n\x1a\n")
+            width, height = struct.unpack(">II", path.read_bytes()[16:24])
+            self.assertGreaterEqual(width, 2000)
+            self.assertGreater(height, 500)
+        for reference in range(11, 16):
+            self.assertEqual(text.count(f"\n[{reference}] "), 1)
+        for title in ["Unsupervised data augmentation", "masked hard instance mining",
+                      "2D point clouds", "Inductive representation", "Highway networks"]:
+            self.assertIn(title, text)
+
+    def test_references_use_readable_compact_type(self):
+        reference = build_report.parse("[11] A primary reference.")[0]
+        self.assertEqual(reference["fontSize"], 9)
+        ordinary = build_report.parse("A body paragraph.")[0]
+        self.assertNotIn("fontSize", ordinary)
 
     def test_poster_uses_lecture_aspect_ratio_and_embedded_images(self):
         definition = build_poster.definition(ROOT / "presentation/poster.md")

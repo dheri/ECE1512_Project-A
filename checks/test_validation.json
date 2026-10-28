@@ -1,6 +1,7 @@
 {
   "status": "passed",
   "regression_suite": {
+    "scope": "Previous full regression run, before four additional document tests were added.",
     "command": "python -m unittest discover -s tests -v",
     "tests_at_time_of_run": 51,
     "passed": 50,
@@ -15,9 +16,11 @@
   },
   "document_builders": {
     "command": "python3 -m unittest discover -s tests -p test_documents.py -v",
-    "tests": 8,
-    "passed": 8,
-    "included_in_regression_suite": true
+    "tests": 12,
+    "passed": 12,
+    "included_in_regression_suite": false,
+    "previous_full_suite_document_tests": 8,
+    "scope": "Latest targeted run on the final nine-page report source; all twelve passed."
   },
   "total_passed": 50,
   "total_skipped": 1,
@@ -27,5 +30,5 @@
     "device": "cpu"
   },
   "scientific_training_rerun": false,
-  "note": "All 51 tests ran together in the CPU container: 50 passed and the optional real-feature test skipped. The eight document tests also passed independently on the host. Synthetic workflow tests train tiny generated bags, not new scientific experiment runs."
+  "note": "The previous full run contained 51 tests: 50 passed and one optional real-feature test skipped. The totals above refer to that run. This report-only revision added four document tests and reran all twelve document tests successfully on the host, plus the saved-result audit. The unchanged scientific regression suite was not rerun. No new scientific training was performed."
 }

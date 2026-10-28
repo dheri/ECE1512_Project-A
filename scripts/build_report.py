@@ -27,6 +27,7 @@ def rich(text):
         if p.startswith("http"):
             label = ("CVF publisher page" if "thecvf.com" in p else
                      "PMLR publisher page" if "mlr.press" in p else
+                     "NeurIPS publisher page" if "proceedings.neurips.cc" in p else
                      "BRACS publisher page" if "oup.com" in p else
                      "arXiv:" + p.rsplit("/", 1)[-1] if "arxiv.org" in p else
                      "Zenodo:" + p.rsplit("/", 1)[-1] if "zenodo.org" in p else
@@ -65,6 +66,16 @@ def parse(text, width=WIDTH):
             nodes.extend(parse(table_text, width))
             i += 1
             continue
+        table_weights = None
+        match = re.fullmatch(r"<!-- table-widths: ([\d, ]+) -->", line)
+        if match:
+            table_weights = [int(value.strip()) for value in match[1].split(",")]
+            if not all(value > 0 for value in table_weights) or sum(table_weights) != 100:
+                raise ValueError("Table widths must be positive percentages summing to 100.")
+            i += 1
+            if i >= len(lines) or not lines[i].strip().startswith("|"):
+                raise ValueError("Table widths must immediately precede a Markdown table.")
+            line = lines[i].strip()
         if line.startswith("|"):
             rows = []
             while i < len(lines) and lines[i].strip().startswith("|"):
@@ -75,7 +86,14 @@ def parse(text, width=WIDTH):
             body = [[{"text": rich(t), "bold": ri == 0, "fontSize": 8 if len(row) > 4 else 9,
                       "fillColor": "#eeeeee" if ri == 0 else "#ffffff", "margin": [0, 2, 0, 2]}
                      for t in row] for ri, row in enumerate(rows)]
-            nodes.append({"table": {"headerRows": 1, "widths": ["*"] * len(rows[0]), "body": body,
+            widths = ["*"] * len(rows[0])
+            if table_weights is not None:
+                if len(table_weights) != len(rows[0]):
+                    raise ValueError("Table width count must match its columns.")
+                # lightHorizontalLines uses 4 pt padding on each side of every cell.
+                available = width - 8 * len(rows[0])
+                widths = [available * value / 100 for value in table_weights]
+            nodes.append({"table": {"headerRows": 1, "widths": widths, "body": body,
                                    "dontBreakRows": True},
                           "layout": "lightHorizontalLines", "margin": [0, 3, 0, 11]})
             continue
@@ -117,8 +135,11 @@ def parse(text, width=WIDTH):
         while i < len(lines) and lines[i].strip():
             paragraph.append(lines[i].strip())
             i += 1
-        nodes.append({"text": rich(" ".join(paragraph)), "alignment": "justify",
-                      "margin": [0, 0, 0, 5]})
+        node = {"text": rich(" ".join(paragraph)), "alignment": "justify",
+                "margin": [0, 0, 0, 5]}
+        if re.match(r"^\[\d+\] ", line):
+            node.update(fontSize=9, lineHeight=1.03)
+        nodes.append(node)
     return nodes
 
 
