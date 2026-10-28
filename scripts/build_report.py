@@ -85,10 +85,12 @@ def parse(text, width=WIDTH):
             data = "data:image/png;base64," + base64.b64encode(image.read_bytes()).decode()
             image_width = width * (.92 if "validation.png" in match[2] else
                                    .89 if "paired_seed" in match[2] else .97)
-            nodes.append({"image": data, "width": image_width, "alignment": "center",
-                          "margin": [0, 4, 0, 3]})
-            nodes.append({"text": rich(match[1]), "fontSize": 8, "lineHeight": 1.02,
-                          "margin": [0, 0, 0, 7]})
+            nodes.append({"stack": [
+                {"image": data, "width": image_width, "alignment": "center",
+                 "margin": [0, 4, 0, 3]},
+                {"text": rich(match[1]), "fontSize": 8, "lineHeight": 1.02,
+                 "margin": [0, 0, 0, 7]},
+            ], "unbreakable": True})
             i += 1
             continue
         if line.startswith("#"):
@@ -120,26 +122,21 @@ def parse(text, width=WIDTH):
     return nodes
 
 
-def definition():
-    pages = (ROOT / "report/report.md").read_text().split("<!-- page -->")
+def definition(source=None):
+    source = source or ROOT / "report/report_lecture.md"
+    pages = source.read_text().split("<!-- page -->")
     content = []
     for number, page in enumerate(pages, 1):
         nodes = parse(page)
         if number > 1:
             nodes[0]["pageBreak"] = "before"
         if number == 1:
-            for node in nodes:
-                if "columns" in node:
-                    break
+            for node in nodes[:5]:
                 node["alignment"] = "center"
-        if number == 2:
-            for node in nodes:
-                if "columns" in node:
-                    node.update(fontSize=9.1, lineHeight=1.04)
         content.extend(nodes)
     return {
         "pageSize": "LETTER", "pageMargins": [48, 40, 48, 42],
-        "defaultStyle": {"font": "Roboto", "fontSize": 9.4, "lineHeight": 1.04},
+        "defaultStyle": {"font": "Roboto", "fontSize": 10, "lineHeight": 1.06},
         "styles": {
             "h1": {"fontSize": 17, "bold": True, "alignment": "center", "margin": [0, 0, 0, 7]},
             "h2": {"fontSize": 12.5, "bold": True, "margin": [0, 0, 0, 9]},
@@ -156,25 +153,17 @@ def definition():
     }, len(pages)
 
 
-def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--node", default=shutil.which("node"))
-    parser.add_argument("--pdfmake", type=Path, required=True, help="Installed PDF library directory.")
-    parser.add_argument("--workdir", type=Path, default=Path.cwd() / "tmp/report_build")
-    parser.add_argument("--output", type=Path, default=Path.cwd() / "outputs/ECE1512_ProjectA_Report.pdf")
-    args = parser.parse_args()
-    if not args.node:
-        parser.error("Node is required. Install the renderer separately, not in the training environment.")
-    args.workdir.mkdir(parents=True, exist_ok=True)
-    args.output.parent.mkdir(parents=True, exist_ok=True)
-    spec, expected_pages = definition()
-    source = args.workdir / "project_a.pdf.json"
+def render_document(spec, expected_pages, *, node, pdfmake, workdir, output, number_pages=True):
+    """Render a validated document using the separately installed PDF runtime."""
+    workdir.mkdir(parents=True, exist_ok=True)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    source = workdir / "project_a.pdf.json"
     source.write_text(json.dumps(spec, ensure_ascii=False))
-    script = args.workdir / "render_report.cjs"
+    script = workdir / "render_report.cjs"
     script.write_text("""
 const fs = require('fs');
 const path = require('path');
-const [library, source, output] = process.argv.slice(2);
+const [library, source, output, numberPages] = process.argv.slice(2);
 const Printer = require(library);
 const vfs = require(path.join(library, 'build/vfs_fonts.js'));
 const buffer = name => Buffer.from(vfs[name], 'base64');
@@ -199,7 +188,7 @@ function checkGlyphs(node) {
 checkGlyphs(definition.content);
 const doc = printer.createPdfKitDocument(definition, {bufferPages: true});
 const range = doc.bufferedPageRange();
-for (let i = range.start; i < range.start + range.count; i++) {
+for (let i = range.start; numberPages === 'true' && i < range.start + range.count; i++) {
   doc.switchToPage(i);
   const bottom = doc.page.margins.bottom;
   doc.page.margins.bottom = 0;
@@ -211,21 +200,36 @@ const out = fs.createWriteStream(output);
 doc.pipe(out); doc.end();
 out.on('error', e => { console.error(e); process.exitCode = 1; });
 """)
-    subprocess.run([args.node, str(script.resolve()), str(args.pdfmake.resolve()),
-                    str(source.resolve()), str(args.output.resolve())], check=True)
-    assert args.output.stat().st_size > 1000
-    with args.output.open("rb") as f:
+    subprocess.run([node, str(script.resolve()), str(pdfmake.resolve()),
+                    str(source.resolve()), str(output.resolve()), str(number_pages).lower()], check=True)
+    assert output.stat().st_size > 1000
+    with output.open("rb") as f:
         assert f.read(5) == b"%PDF-"
     if shutil.which("pdfinfo"):
-        info = subprocess.check_output(["pdfinfo", str(args.output)], text=True)
+        info = subprocess.check_output(["pdfinfo", str(output)], text=True)
         pages = int(re.search(r"^Pages:\s+(\d+)", info, re.MULTILINE)[1])
         if pages != expected_pages or pages > 20:
             raise ValueError(f"Expected {expected_pages} deliberate pages, rendered {pages}. Adjust layout.")
     script.unlink()
+    print(f"Built {output.resolve()} ({output.stat().st_size:,} bytes; {expected_pages} pages).")
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--node", default=shutil.which("node"))
+    parser.add_argument("--pdfmake", type=Path, required=True, help="Installed PDF library directory.")
+    parser.add_argument("--source", type=Path, default=ROOT / "report/report_lecture.md")
+    parser.add_argument("--workdir", type=Path, default=Path.cwd() / "tmp/report_build")
+    parser.add_argument("--output", type=Path, default=Path.cwd() / "outputs/ECE1512_ProjectA_Report.pdf")
+    args = parser.parse_args()
+    if not args.node:
+        parser.error("Node is required. Install the renderer separately, not in the training environment.")
+    spec, expected_pages = definition(args.source)
+    render_document(spec, expected_pages, node=args.node, pdfmake=args.pdfmake,
+                    workdir=args.workdir, output=args.output)
     packaged = ROOT / "report/ECE1512_ProjectA_Report.pdf"
     if args.output.resolve() != packaged.resolve():
         shutil.copyfile(args.output, packaged)
-    print(f"Built {args.output.resolve()} ({args.output.stat().st_size:,} bytes; {expected_pages} pages).")
 
 
 if __name__ == "__main__":

@@ -2,17 +2,24 @@
   "status": "passed",
   "regression_suite": {
     "command": "python -m unittest discover -s tests -v",
-    "tests_at_time_of_run": 39,
-    "passed": 38,
+    "tests_at_time_of_run": 51,
+    "passed": 50,
     "skipped": 1,
     "skip_reason": "Optional real-feature forward test requires the unbundled course feature files."
   },
   "submission_entry_points": {
     "command": "python -m unittest discover -s tests -p test_submission.py -v",
     "tests": 4,
-    "passed": 4
+    "passed": 4,
+    "included_in_regression_suite": true
   },
-  "total_passed": 42,
+  "document_builders": {
+    "command": "python3 -m unittest discover -s tests -p test_documents.py -v",
+    "tests": 8,
+    "passed": 8,
+    "included_in_regression_suite": true
+  },
+  "total_passed": 50,
   "total_skipped": 1,
   "environment": {
     "python": "3.12.14",
@@ -20,5 +27,5 @@
     "device": "cpu"
   },
   "scientific_training_rerun": false,
-  "note": "Synthetic workflow tests train tiny generated bags. They are not new scientific experiment runs. The four submission tests were added after the 39-test regression run and checked separately."
+  "note": "All 51 tests ran together in the CPU container: 50 passed and the optional real-feature test skipped. The eight document tests also passed independently on the host. Synthetic workflow tests train tiny generated bags, not new scientific experiment runs."
 }
