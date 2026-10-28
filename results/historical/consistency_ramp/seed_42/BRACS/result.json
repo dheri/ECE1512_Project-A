@@ -1,0 +1,30 @@
+{
+  "dataset": "BRACS",
+  "dataset_key": "BRACS",
+  "run_mode": "extension",
+  "classes": 7,
+  "epochs": 30,
+  "best_epoch": 9,
+  "validation_slides": 62,
+  "test_slides": 86,
+  "validation_accuracy_pct": 50.0,
+  "test_accuracy_pct": 41.860464215278625,
+  "test_macro_auroc": 0.813211977481842,
+  "test_macro_f1": 0.3667674660682678,
+  "test_loss": 1.4202901865491038,
+  "validation_pngs": 62,
+  "warnings": [],
+  "method": "abmil_consistency_ramp",
+  "training_extension": {
+    "method": "consistency",
+    "keep_fraction": 0.9,
+    "consistency_weight": 1.0,
+    "objective": "CrossEntropyLoss(full) + weight * KL(detached full || masked)",
+    "temperature": 1.0,
+    "sampling": "Uniform without replacement; max(1, floor(N * keep_fraction)).",
+    "mask_rng": "Dedicated CPU torch.Generator seeded with training_seed.",
+    "evaluation": "Full bags; no patch masking or consistency loss.",
+    "ramp_epochs": 3,
+    "weight_schedule": "weight * min(one_based_epoch / ramp_epochs, 1)."
+  }
+}

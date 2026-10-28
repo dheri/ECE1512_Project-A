@@ -1,0 +1,71 @@
+{
+  "dataset": "BRACS",
+  "data_dir": "feature/BRACS/patch_feats_pretrain_medical_ssl.h5",
+  "dataset_csv_dir": "dataset_csv",
+  "D_feat": 384,
+  "D_inner": 256,
+  "D_attn": 128,
+  "n_res": 0,
+  "n_class": 7,
+  "B": 1,
+  "n_worker": 0,
+  "pin_memory": true,
+  "n_shot": 0,
+  "seed": 46,
+  "lr": 0.0001,
+  "wd": 1e-05,
+  "train_epoch": 30,
+  "warmup_epoch": 3,
+  "droprate": 0.0,
+  "dataset_key": "BRACS",
+  "run_mode": "extension",
+  "epochs": 30,
+  "device": "cuda",
+  "class_names": [
+    "Class 0",
+    "Class 1",
+    "Class 2",
+    "Class 3",
+    "Class 4",
+    "Class 5",
+    "Class 6"
+  ],
+  "split_sizes": {
+    "Train": 389,
+    "Validation": 62,
+    "Test": 86
+  },
+  "selection_rule": "Max validation macro AUROC + macro F1; first epoch wins ties.",
+  "optimizer": "AdamW",
+  "loss": "CrossEntropyLoss",
+  "scheduler": null,
+  "unused_starter_fields": [
+    "warmup_epoch",
+    "n_res"
+  ],
+  "split_seed": 42,
+  "split_sha256": "6da8b481d706c885a9cac45f35fc7b50e823c7d57560a11ece4210d254ae1d81",
+  "training_seed": 46,
+  "partition_protocol": "original_fixed",
+  "method": "abmil_spatial_gated",
+  "training_extension": {
+    "method": "spatial_context",
+    "neighbors": 8,
+    "coordinate_mode": "real",
+    "shuffle_seed": 42,
+    "cache_entries": 16,
+    "objective": "CrossEntropyLoss",
+    "context": "h + sigmoid(Linear(concat(h, mean_neighbor_h))) * Linear(ReLU(Linear(concat(h, mean_neighbor_h)))); hidden width D_inner.",
+    "initialization": "Zero final context layer; zero gate weights and logit(initial_probability) gate bias; preserve baseline initialization RNG.",
+    "graph": "Canonical-coordinate cKDTree kNN, Euclidean input units, exclude self; schema 1.",
+    "small_bags": "min(k, N-1) neighbors; singleton neighbor mean is zero.",
+    "duplicates": "Reject duplicate coordinates rather than invent an ordering.",
+    "shuffle": "Fixed per slide ID and shuffle_seed, assigned in canonical coordinate order.",
+    "evaluation": "Full bags, with the same coordinate mode at training and inference.",
+    "gate": {
+      "type": "per_patch_sigmoid_linear",
+      "initial_probability": 0.1
+    }
+  },
+  "model_parameter_count": 363913
+}

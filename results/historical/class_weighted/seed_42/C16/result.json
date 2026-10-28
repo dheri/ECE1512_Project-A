@@ -1,0 +1,27 @@
+{
+  "dataset": "CAMELYON16",
+  "dataset_key": "C16",
+  "run_mode": "extension",
+  "classes": 2,
+  "epochs": 30,
+  "best_epoch": 3,
+  "validation_slides": 27,
+  "test_slides": 129,
+  "validation_accuracy_pct": 100.0,
+  "test_accuracy_pct": 89.147287607193,
+  "test_macro_auroc": 0.9502550959587097,
+  "test_macro_f1": 0.8764367699623108,
+  "test_loss": 0.2792835032509625,
+  "validation_pngs": 27,
+  "warnings": [],
+  "method": "abmil_class_balanced",
+  "training_extension": {
+    "method": "class_balanced_ce",
+    "objective": "Mean(train_class_weight[label] * CrossEntropyLoss_per_slide)",
+    "weights": "N_train / (n_classes * train_class_count).",
+    "normalization": "Mean over slides, NOT division by batch label-weight sum.",
+    "counts": "Training slides only, after the frozen development partition.",
+    "evaluation": "Full bags; ordinary unweighted CrossEntropyLoss.",
+    "architecture": "Unchanged notebook ABMIL."
+  }
+}

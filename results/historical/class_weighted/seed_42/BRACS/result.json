@@ -1,0 +1,27 @@
+{
+  "dataset": "BRACS",
+  "dataset_key": "BRACS",
+  "run_mode": "extension",
+  "classes": 7,
+  "epochs": 30,
+  "best_epoch": 5,
+  "validation_slides": 62,
+  "test_slides": 86,
+  "validation_accuracy_pct": 51.61290168762207,
+  "test_accuracy_pct": 34.88371968269348,
+  "test_macro_auroc": 0.7981775403022766,
+  "test_macro_f1": 0.24530673027038574,
+  "test_loss": 1.5499366044370069,
+  "validation_pngs": 62,
+  "warnings": [],
+  "method": "abmil_class_balanced",
+  "training_extension": {
+    "method": "class_balanced_ce",
+    "objective": "Mean(train_class_weight[label] * CrossEntropyLoss_per_slide)",
+    "weights": "N_train / (n_classes * train_class_count).",
+    "normalization": "Mean over slides, NOT division by batch label-weight sum.",
+    "counts": "Training slides only, after the frozen development partition.",
+    "evaluation": "Full bags; ordinary unweighted CrossEntropyLoss.",
+    "architecture": "Unchanged notebook ABMIL."
+  }
+}

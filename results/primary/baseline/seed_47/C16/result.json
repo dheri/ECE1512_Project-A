@@ -1,0 +1,17 @@
+{
+  "dataset": "CAMELYON16",
+  "dataset_key": "C16",
+  "run_mode": "baseline",
+  "classes": 2,
+  "epochs": 30,
+  "best_epoch": 3,
+  "validation_slides": 27,
+  "test_slides": 129,
+  "validation_accuracy_pct": 100.0,
+  "test_accuracy_pct": 87.59689927101135,
+  "test_macro_auroc": 0.9278061389923096,
+  "test_macro_f1": 0.8683673143386841,
+  "test_loss": 0.3006410061464331,
+  "validation_pngs": 27,
+  "warnings": []
+}

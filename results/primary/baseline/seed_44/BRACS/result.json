@@ -1,0 +1,17 @@
+{
+  "dataset": "BRACS",
+  "dataset_key": "BRACS",
+  "run_mode": "baseline",
+  "classes": 7,
+  "epochs": 30,
+  "best_epoch": 4,
+  "validation_slides": 62,
+  "test_slides": 86,
+  "validation_accuracy_pct": 59.67742204666138,
+  "test_accuracy_pct": 44.186046719551086,
+  "test_macro_auroc": 0.8004658818244934,
+  "test_macro_f1": 0.36722588539123535,
+  "test_loss": 1.361044997630944,
+  "validation_pngs": 62,
+  "warnings": []
+}

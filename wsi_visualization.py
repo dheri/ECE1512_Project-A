@@ -1,0 +1,394 @@
+"""Plot coordinate-based attention galleries and optional CAMELYON16 WSI overlays.
+
+Patch and annotation coordinates use the original level-0 (x, y) frame.
+The default 512-pixel square patch footprint is an assumption: the supplied
+feature files do not record patch-size metadata.
+"""
+
+from pathlib import Path
+import xml.etree.ElementTree as ET
+import h5py
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.colors import Normalize
+from matplotlib.lines import Line2D
+from matplotlib.patches import Rectangle
+import torch
+
+# Large-bag float32 CPU softmax can drift by a few 1e-5. Never renormalize plots.
+ATTENTION_SUM_ATOL = 1e-4
+
+def read_annotation_contours(xml_path):
+    # ASAP XML coordinates are (x, y) in the original level-0 WSI frame.
+    if not xml_path.exists():
+        return []
+    polygons = []
+    for annotation in ET.parse(xml_path).getroot().findall('.//Annotation'):
+        if annotation.get('Type', '').lower() != 'polygon':
+            continue
+        points = sorted(annotation.findall('./Coordinates/Coordinate'),
+                        key=lambda p: int(p.get('Order', '0')))
+        xy = np.array([[float(p.get('X')), float(p.get('Y'))] for p in points])
+        if len(xy) >= 3:
+            polygons.append((np.vstack([xy, xy[0]]), annotation.get('PartOfGroup', '')))
+    return polygons
+
+
+def attention_percentiles(weights):
+    # Midranks handle tied values; colors describe relative attention within a slide.
+    sorted_weights = np.sort(weights)
+    left = np.searchsorted(sorted_weights, weights, side='left')
+    right = np.searchsorted(sorted_weights, weights, side='right')
+    return 100.0 * (left + right - 1) / (2 * max(len(weights) - 1, 1))
+
+
+def plot_attention_triptych(coords, weights, *, title='ABMIL attention'):
+    """Compare unchanged weights, cumulative attention, and within-slide ranks."""
+    weights = np.asarray(weights, dtype=np.float64)
+    xy = np.asarray(coords)
+    if (weights.ndim != 1 or len(weights) == 0
+            or not np.isfinite(weights).all() or (weights < 0).any()
+            or not np.isclose(weights.sum(), 1.0, rtol=0, atol=ATTENTION_SUM_ATOL)):
+        raise ValueError('Expected nonnegative, finite attention weights summing to one.')
+    if xy.shape != (len(weights), 2) or not np.isfinite(xy).all():
+        raise ValueError('Expected finite patch coordinates with shape [N, 2].')
+
+    descending = np.sort(weights)[::-1]
+    cumulative = np.r_[0.0, np.cumsum(descending)]
+    patch_percent = 100.0 * np.arange(len(weights) + 1) / len(weights)
+    top_count = max(1, int(np.ceil(len(weights) * 0.01)))
+    count_80 = min(len(weights), int(np.searchsorted(cumulative[1:], 0.8)) + 1)
+    stats = {
+        'patches': len(weights),
+        'attention_sum': float(weights.sum()),
+        'attention_sum_error': float(weights.sum() - 1.0),
+        'attention_sum_atol': ATTENTION_SUM_ATOL,
+        'max_attention': float(weights.max()),
+        'median_attention': float(np.median(weights)),
+        'raw_weight_at_60th_percentile': float(np.quantile(weights, 0.60)),
+        'top_1pct_patch_count': top_count,
+        'top_1pct_attention_mass': float(cumulative[top_count]),
+        'patches_for_80pct_attention': count_80,
+        'percent_patches_for_80pct_attention': 100.0 * count_80 / len(weights),
+    }
+    percentiles = attention_percentiles(weights)
+    order = np.argsort(weights)
+    fig, axes = plt.subplots(1, 3, figsize=(17, 5.2), layout='constrained')
+    for ax, values, norm, heading, color_label in (
+        (axes[0], weights, Normalize(0, float(weights.max())),
+         'Actual attention weights', 'Raw softmax weight (linear scale)'),
+        (axes[2], percentiles, Normalize(0, 100),
+         'Gallery attention percentiles', 'Within-slide percentile (rank, not weight)'),
+    ):
+        artist = ax.scatter(
+            xy[order, 0], xy[order, 1], c=values[order], cmap='viridis',
+            norm=norm, s=4, rasterized=True,
+        )
+        ax.invert_yaxis()
+        ax.set_aspect('equal', adjustable='box')
+        ax.set(title=heading, xlabel='Slide x', ylabel='Slide y')
+        ax.ticklabel_format(style='sci', axis='both', scilimits=(0, 0))
+        bar = fig.colorbar(artist, ax=ax, shrink=0.85, label=color_label)
+        if ax is axes[0]:
+            bar.formatter.set_powerlimits((0, 0))
+            bar.update_ticks()
+    axes[1].plot(patch_percent, cumulative, label='Model attention', linewidth=2)
+    axes[1].plot([0, 100], [0, 1], '--', color='gray', label='Uniform attention')
+    axes[1].axhline(0.8, color='gray', linestyle=':', linewidth=1)
+    axes[1].scatter(patch_percent[top_count], cumulative[top_count], color='firebrick', s=24)
+    axes[1].text(
+        0.04, 0.55,
+        f'Top {top_count:,} patches ({patch_percent[top_count]:.2g}%):\n'
+        f'{100 * cumulative[top_count]:.1f}% of attention\n\n'
+        f'80% of attention needs\n{100 * count_80 / len(weights):.2f}% of patches',
+        transform=axes[1].transAxes, fontsize=10,
+        bbox=dict(facecolor='white', edgecolor='lightgray', alpha=0.9),
+    )
+    axes[1].set(
+        title='Does attention focus on a few patches?',
+        xlabel='Patches sorted by decreasing attention (%)',
+        ylabel='Cumulative attention weight', xlim=(0, 100), ylim=(0, 1.02),
+    )
+    axes[1].grid(alpha=0.2)
+    axes[1].legend(loc='lower right', fontsize=8)
+    fig.suptitle(title, fontsize=13)
+    fig.supxlabel(
+        'Spatial maps use patch coordinates, not tissue pixels. '
+        'Neither attention weights nor ranks are patch tumor probabilities.',
+        fontsize=9,
+    )
+    return fig, stats
+
+
+def select_gallery_indices(labels, count=6):
+    """Choose slides in class-balanced, dataset order without using predictions."""
+    labels = np.asarray(labels)
+    if labels.ndim != 1 or len(labels) == 0:
+        raise ValueError('Gallery labels must be a nonempty one-dimensional sequence.')
+    if not isinstance(count, (int, np.integer)) or count < 1:
+        raise ValueError('Gallery count must be a positive integer.')
+    groups = [np.flatnonzero(labels == label).tolist() for label in np.unique(labels)]
+    candidates = [
+        group[position]
+        for position in range(max(map(len, groups)))
+        for group in groups if position < len(group)
+    ]
+    return candidates[:count]
+
+
+@torch.no_grad()
+def plot_attention_gallery(model, dataset, indices, class_names, *, ncols=3):
+    """Return a figure and prediction rows for complete, unpadded slide bags.
+
+    Color is the attention percentile within each slide, not tumor probability.
+    Each panel preserves the aspect ratio but fits its own coordinate bounds.
+    Slides are processed sequentially; no optimizer or parameter update is used.
+    """
+    indices = list(indices)
+    if not indices:
+        raise ValueError('Choose at least one slide for the gallery.')
+    if not isinstance(ncols, (int, np.integer)) or ncols < 1:
+        raise ValueError('ncols must be a positive integer.')
+    if any(not isinstance(i, (int, np.integer)) or not 0 <= i < len(dataset)
+           for i in indices):
+        raise ValueError('Gallery indices must be valid dataset indices.')
+    if len(set(indices)) != len(indices):
+        raise ValueError('Choose distinct slide indices for the gallery.')
+
+    ncols = min(ncols, len(indices))
+    nrows = (len(indices) + ncols - 1) // ncols
+    fig, axes = plt.subplots(
+        nrows, ncols, figsize=(4.8 * ncols, 4.8 * nrows),
+        squeeze=False, layout='constrained',
+    )
+    rows = []
+    norm = Normalize(0, 100)
+    device = next(model.parameters()).device
+    was_training = model.training
+    model.eval()
+    try:
+        for ax, index in zip(axes.flat, indices):
+            item = dataset[index]
+            features = item['input'].to(device, dtype=torch.float32)
+            logits, attention = model(features.unsqueeze(0), return_attention=True)
+            probabilities = logits.softmax(dim=-1)[0].cpu().numpy()
+            weights = attention[0, 0].cpu().numpy()
+            if (len(weights) != len(features) or not np.isfinite(weights).all()
+                    or (weights < 0).any() or not np.isclose(weights.sum(), 1.0)):
+                raise ValueError(f'{item["slide_id"]}: invalid normalized patch attention.')
+            if len(probabilities) != len(class_names) or not np.isfinite(probabilities).all():
+                raise ValueError('Model output must match the finite class probabilities.')
+            label = int(item['label'])
+            if not 0 <= label < len(class_names):
+                raise ValueError(f'{item["slide_id"]}: label is outside the class range.')
+            prediction = int(probabilities.argmax())
+            confidence = float(probabilities[prediction])
+            correct = prediction == label
+            coords = item.get('coords')
+            if coords is not None:
+                xy = torch.as_tensor(coords).cpu().numpy()
+                if xy.shape != (len(weights), 2) or not np.isfinite(xy).all():
+                    raise ValueError(f'{item["slide_id"]}: invalid patch coordinates.')
+                ax.scatter(
+                    xy[:, 0], xy[:, 1], c=attention_percentiles(weights),
+                    s=4, cmap='viridis', norm=norm, rasterized=True,
+                )
+                ax.invert_yaxis()
+                ax.set_aspect('equal', adjustable='box')
+            else:
+                ax.text(0.5, 0.5, 'Patch coordinates unavailable',
+                        ha='center', va='center', transform=ax.transAxes)
+            ax.set_axis_off()
+            outcome = 'Correct' if correct else 'Incorrect'
+            ax.set_title(
+                f'{item["slide_id"]} | True: {class_names[label]}\n'
+                f'Pred: {class_names[prediction]} | {confidence:.1%} confidence | {outcome}\n'
+                f'{len(weights):,} patches',
+                color='darkgreen' if correct else 'firebrick', fontsize=10,
+            )
+            rows.append({
+                'test_index': int(index), 'slide_id': item['slide_id'],
+                'label': label, 'true_class': class_names[label],
+                'prediction': prediction, 'predicted_class': class_names[prediction],
+                'confidence': confidence, 'correct': correct,
+                'patches': len(weights), 'attention_sum': float(weights.sum()),
+                'has_coords': coords is not None,
+            })
+        for ax in list(axes.flat)[len(indices):]:
+            ax.set_axis_off()
+        scalar = plt.cm.ScalarMappable(norm=norm, cmap='viridis')
+        fig.colorbar(
+            scalar, ax=list(axes.flat), shrink=0.8, pad=0.02,
+            label='Within-slide attention percentile (not tumor probability)',
+        )
+        fig.suptitle(
+            'ABMIL spatial attention gallery\n'
+            'Patch coordinates, not tissue pixels; each panel fits its slide.',
+            fontsize=14,
+        )
+    except BaseException:
+        plt.close(fig)
+        raise
+    finally:
+        model.train(was_training)
+    return fig, rows
+
+
+def render_attention(image, extent, coords, percentiles, patch_size_level0=512):
+    # Plot everything in level-0 coordinates, including resized images and contours.
+    x0, x1, y1, y0 = extent
+    width, height = image.size
+    sx, sy = width / (x1 - x0), height / (y1 - y0)
+    sums = np.zeros((height, width), dtype=np.float32)
+    counts = np.zeros((height, width), dtype=np.uint32)
+    for (x, y), value in zip(coords, percentiles):
+        if x >= x1 or y >= y1 or x + patch_size_level0 <= x0 or y + patch_size_level0 <= y0:
+            continue
+        left = max(0, int(np.floor((x - x0) * sx)))
+        top = max(0, int(np.floor((y - y0) * sy)))
+        right = min(width, int(np.ceil((x + patch_size_level0 - x0) * sx)))
+        bottom = min(height, int(np.ceil((y + patch_size_level0 - y0) * sy)))
+        sums[top:bottom, left:right] += value
+        counts[top:bottom, left:right] += 1
+    heat = np.ma.array(sums / np.maximum(counts, 1), mask=(counts == 0))
+    return heat  # Areas without extracted patches remain transparent.
+
+
+def draw_contours(ax, contours):
+    for xy, group in contours:
+        # ASAP exclusion / non-tumor polygons, if present, use dashed cyan lines.
+        excluded = group.lower() in {'_2', 'exclusion', 'exclude', 'normal'}
+        ax.plot(xy[:, 0], xy[:, 1], color='cyan' if excluded else 'lime',
+                linestyle='--' if excluded else '-', linewidth=1.2)
+
+
+def visualize_wsi_attention(
+    model, conf, project_dir, best_model_state, *,
+    slide_ids=('test_068', 'test_067'), patch_size_level0=512,
+    thumbnail_max_size=1800, overlay_alpha=0.55, normal_zoom_size=16384,
+):
+    """Restore the best weights and show WSI, attention, and zoom for each slide.
+
+    Missing XML annotations are allowed. Green lines show tumor contours;
+    a blue rectangle marks the zoom. Heatmap colors are within-slide attention
+    percentiles, and uncovered areas remain transparent.
+
+    Returns a dictionary keyed by slide ID with raw coordinates, normalized
+    attention weights, and slide-level class probabilities. Adjust
+    ``patch_size_level0`` to the extraction footprint when known.
+    """
+    try:
+        import openslide
+    except (ImportError, OSError) as exc:
+        raise ImportError(
+            'Install the WSI dependencies with: %pip install openslide-python openslide-bin'
+        ) from exc
+    slide_dir = Path(project_dir) / 'slide'
+    if str(conf.dataset).upper() != 'CAMELYON16':
+        raise ValueError('Select DATASET = "C16" and train its model for these two slides.')
+    if best_model_state is None:
+        raise RuntimeError('Run Step 6 first so best_model_state contains trained weights.')
+    model.load_state_dict(best_model_state)
+    model.eval()
+    attention_device = next(model.parameters()).device
+
+    attention_visualizations = {}
+    for slide_id in slide_ids:
+        slide_path = slide_dir / f'{slide_id}.tif'
+        if not slide_path.exists():
+            raise FileNotFoundError(f'WSI not found: {slide_path}')
+        with h5py.File(conf.data_dir, 'r') as h5:
+            if slide_id not in h5:
+                raise KeyError(f'{slide_id} is missing from {conf.data_dir}')
+            group = h5[slide_id]
+            if 'coords' not in group:
+                raise ValueError(f'{slide_id} has no patch coordinates for a WSI overlay.')
+            features = np.asarray(group['feat'][:], dtype=np.float32)
+            coords = np.asarray(group['coords'][:], dtype=np.float64)
+            label = int(group.attrs['label'])
+        if features.ndim != 2 or coords.shape != (len(features), 2) or len(features) == 0:
+            raise ValueError(f'{slide_id}: expected nonempty feat [N,D] and coords [N,2].')
+        if not np.isfinite(coords).all():
+            raise ValueError(f'{slide_id}: patch coordinates contain nonfinite values.')
+        # One complete, unpadded bag preserves the softmax over all slide patches.
+        with torch.no_grad():
+            logits, attention = model(
+                torch.from_numpy(features).unsqueeze(0).to(attention_device),
+                return_attention=True,
+            )
+        weights = attention.detach().cpu().numpy().reshape(-1)
+        if len(weights) != len(coords) or not np.isfinite(weights).all():
+            raise ValueError(f'{slide_id}: invalid attention or coordinate/attention mismatch.')
+        probabilities = torch.softmax(logits, dim=-1)[0].detach().cpu().numpy()
+        percentiles = attention_percentiles(weights)
+        contours = read_annotation_contours(slide_dir / f'{slide_id}.xml')
+        tumor_contours = [xy for xy, group in contours
+                          if group.lower() not in {'_2', 'exclusion', 'exclude', 'normal'}]
+
+        with openslide.OpenSlide(str(slide_path)) as wsi:
+            w, h = wsi.dimensions
+            if (coords < 0).any() or (coords[:, 0] >= w).any() or (coords[:, 1] >= h).any():
+                raise ValueError(f'{slide_id}: coords must be level-0 (x,y) within WSI bounds.')
+            overview = wsi.get_thumbnail((thumbnail_max_size, thumbnail_max_size))
+            overview_extent = (0, w, h, 0)
+            if tumor_contours:
+                xy = np.concatenate(tumor_contours)
+                lower, upper = xy.min(axis=0) - 2048, xy.max(axis=0) + 2048
+                zoom_title = 'Tumor annotation region + attention'
+            else:
+                center = coords[int(weights.argmax())] + patch_size_level0 / 2
+                lower, upper = center - normal_zoom_size / 2, center + normal_zoom_size / 2
+                zoom_title = 'Highest-attention region (no annotation)'
+            x0, y0 = np.maximum(0, np.floor(lower)).astype(int)
+            x1, y1 = np.minimum([w, h], np.ceil(upper)).astype(int)
+            level = wsi.get_best_level_for_downsample(
+                max(1.0, max(x1 - x0, y1 - y0) / thumbnail_max_size))
+            downsample = wsi.level_downsamples[level]
+            size = (int(np.ceil((x1 - x0) / downsample)),
+                    int(np.ceil((y1 - y0) / downsample)))
+            zoom = wsi.read_region((int(x0), int(y0)), level, size).convert('RGB')
+            # ceil() can add a partial pixel; use the actual region extent for alignment.
+            zoom_extent = (x0, x0 + size[0] * downsample,
+                           y0 + size[1] * downsample, y0)
+            zoom.thumbnail((thumbnail_max_size, thumbnail_max_size))
+
+        fig, axes = plt.subplots(1, 3, figsize=(16, 8), layout='constrained')
+        norm = Normalize(0, 100)
+        views = [(overview, overview_extent, False, 'WSI + annotation contours'),
+                 (overview, overview_extent, True, 'WSI + attention + contours'),
+                 (zoom, zoom_extent, True, zoom_title)]
+        for ax, (image, extent, show_heat, title) in zip(axes, views):
+            if show_heat:
+                ax.imshow(image.convert('L'), extent=extent, origin='upper',
+                          cmap='gray', vmin=0, vmax=255)
+            else:
+                ax.imshow(image, extent=extent, origin='upper')
+            if show_heat:
+                heat = render_attention(image, extent, coords, percentiles, patch_size_level0)
+                heat_artist = ax.imshow(heat, extent=extent, origin='upper', cmap='viridis',
+                                        norm=norm, alpha=overlay_alpha, interpolation='nearest')
+            draw_contours(ax, contours)
+            ax.set_xlim(extent[:2])
+            ax.set_ylim(extent[2:])
+            ax.set_title(title if contours else title.replace(' + annotation contours',
+                                                             ' (normal; no annotation)').replace(' + contours', ''))
+            ax.set_axis_off()
+        for ax in axes[:2]:
+            ax.add_patch(Rectangle((x0, y0), x1 - x0, y1 - y0,
+                                   fill=False, edgecolor='deepskyblue', linewidth=1))
+        if tumor_contours:
+            axes[0].legend(handles=[Line2D([0], [0], color='lime', label='XML tumor contour')],
+                           loc='upper left', fontsize=8)
+        fig.colorbar(heat_artist, ax=list(axes[1:]), shrink=0.65,
+                    #  label='Within-slide attention percentile (not tumor probability)'
+                     )
+        class_names = ['Normal', 'Tumor']
+        prediction = int(probabilities.argmax())
+        fig.suptitle(f'{slide_id} | Ground truth: {class_names[label]} | '
+                     f'Prediction: {class_names[prediction]} | P(tumor)={probabilities[1]:.3f}')
+        plt.show()
+        print(f'{slide_id}: {len(weights):,} patches; attention sum={weights.sum():.6f}; '
+              f'{len(contours)} annotation contours' + (' (no XML available)' if not contours else ''))
+        attention_visualizations[slide_id] = dict(coords=coords, attention=weights,
+                                                 probabilities=probabilities)
+    return attention_visualizations

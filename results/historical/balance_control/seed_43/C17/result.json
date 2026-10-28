@@ -1,0 +1,19 @@
+{
+  "dataset": "CAMELYON17",
+  "dataset_key": "C17",
+  "run_mode": "baseline",
+  "classes": 4,
+  "epochs": 30,
+  "best_epoch": 26,
+  "validation_slides": 30,
+  "test_slides": 200,
+  "validation_accuracy_pct": 86.66666746139526,
+  "test_accuracy_pct": 80.50000071525574,
+  "test_macro_auroc": 0.830355167388916,
+  "test_macro_f1": 0.5141878724098206,
+  "test_loss": 0.808677180379409,
+  "validation_pngs": 30,
+  "warnings": [
+    "CAMELYON17 uses the supplied center-held-out test split and slide-level 4-class labels, not official challenge patient-level staging."
+  ]
+}

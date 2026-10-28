@@ -1,0 +1,52 @@
+{
+  "dataset": "BRACS",
+  "dataset_key": "BRACS",
+  "run_mode": "extension",
+  "classes": 7,
+  "epochs": 30,
+  "best_epoch": 4,
+  "validation_slides": 62,
+  "test_slides": 86,
+  "validation_accuracy_pct": 51.61290168762207,
+  "test_accuracy_pct": 40.697672963142395,
+  "test_macro_auroc": 0.8009267449378967,
+  "test_macro_f1": 0.3295009136199951,
+  "test_loss": 1.3426774955289655,
+  "validation_pngs": 62,
+  "warnings": [],
+  "method": "abmil_spatial_gated_fixed",
+  "training_extension": {
+    "method": "spatial_context",
+    "neighbors": 8,
+    "coordinate_mode": "real",
+    "shuffle_seed": 42,
+    "cache_entries": 16,
+    "objective": "CrossEntropyLoss",
+    "context": "h + sigmoid(Linear(concat(h, mean_neighbor_h))) * Linear(ReLU(Linear(concat(h, mean_neighbor_h)))); hidden width D_inner.",
+    "initialization": "Zero final context layer; zero gate weights and logit(initial_probability) gate bias; preserve baseline initialization RNG. Gate parameters are frozen.",
+    "graph": "Canonical-coordinate cKDTree kNN, Euclidean input units, exclude self; schema 1.",
+    "small_bags": "min(k, N-1) neighbors; singleton neighbor mean is zero.",
+    "duplicates": "Reject duplicate coordinates rather than invent an ordering.",
+    "shuffle": "Fixed per slide ID and shuffle_seed, assigned in canonical coordinate order.",
+    "evaluation": "Full bags, with the same coordinate mode at training and inference.",
+    "gate": {
+      "type": "per_patch_sigmoid_linear",
+      "initial_probability": 0.1,
+      "trainable": false
+    }
+  },
+  "resource_profile": {
+    "model_parameter_count": 363913,
+    "elapsed_seconds": 604.2652274320008,
+    "peak_cuda_allocated_mib": 411.08740234375,
+    "train_eval_graph_cache": {
+      "memory_hits": 0,
+      "disk_hits": 13141,
+      "graphs_built": 537,
+      "build_seconds": 6.225514577987269,
+      "memory_entries": 16,
+      "memory_bytes": 8470336
+    },
+    "note": "Elapsed time includes audit, train/validation, final evaluation, and image export."
+  }
+}

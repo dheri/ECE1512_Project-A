@@ -1,0 +1,67 @@
+{
+  "dataset": "CAMELYON16",
+  "data_dir": "feature/C16/patch_feats_pretrain_medical_ssl.h5",
+  "D_feat": 384,
+  "D_inner": 256,
+  "D_attn": 128,
+  "n_res": 0,
+  "n_class": 2,
+  "B": 1,
+  "n_worker": 0,
+  "pin_memory": true,
+  "n_shot": 0,
+  "val_fraction": 0.1,
+  "seed": 42,
+  "lr": 0.0001,
+  "wd": 1e-05,
+  "train_epoch": 30,
+  "warmup_epoch": 3,
+  "droprate": 0.0,
+  "dataset_csv_dir": "dataset_csv",
+  "dataset_key": "C16",
+  "run_mode": "extension",
+  "epochs": 30,
+  "device": "cuda",
+  "class_names": [
+    "Normal",
+    "Tumor"
+  ],
+  "split_sizes": {
+    "Train": 242,
+    "Validation": 27,
+    "Test": 129
+  },
+  "selection_rule": "Max validation macro AUROC + macro F1; first epoch wins ties.",
+  "optimizer": "AdamW",
+  "loss": "CrossEntropyLoss",
+  "scheduler": null,
+  "unused_starter_fields": [
+    "warmup_epoch",
+    "n_res"
+  ],
+  "split_seed": 42,
+  "split_sha256": "1e78888dc9c3339e7132d1a18e8776cc36c12f31315bd599720378fd12925acb",
+  "training_seed": 42,
+  "partition_protocol": "original_fixed",
+  "method": "abmil_spatial_gated",
+  "training_extension": {
+    "method": "spatial_context",
+    "neighbors": 8,
+    "coordinate_mode": "real",
+    "shuffle_seed": 42,
+    "cache_entries": 16,
+    "objective": "CrossEntropyLoss",
+    "context": "h + sigmoid(Linear(concat(h, mean_neighbor_h))) * Linear(ReLU(Linear(concat(h, mean_neighbor_h)))); hidden width D_inner.",
+    "initialization": "Zero final context layer; zero gate weights and logit(initial_probability) gate bias; preserve baseline initialization RNG.",
+    "graph": "Canonical-coordinate cKDTree kNN, Euclidean input units, exclude self; schema 1.",
+    "small_bags": "min(k, N-1) neighbors; singleton neighbor mean is zero.",
+    "duplicates": "Reject duplicate coordinates rather than invent an ordering.",
+    "shuffle": "Fixed per slide ID and shuffle_seed, assigned in canonical coordinate order.",
+    "evaluation": "Full bags, with the same coordinate mode at training and inference.",
+    "gate": {
+      "type": "per_patch_sigmoid_linear",
+      "initial_probability": 0.1
+    }
+  },
+  "model_parameter_count": 362628
+}

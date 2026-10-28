@@ -1,0 +1,43 @@
+{
+  "warnings": [
+    "CAMELYON17 uses the supplied center-held-out test split and slide-level 4-class labels, not official challenge patient-level staging."
+  ],
+  "splits": {
+    "Train": {
+      "slides": 269,
+      "patches": 2806236,
+      "max_bag_patches": 36126,
+      "class_counts": {
+        "0": 177,
+        "1": 19,
+        "2": 36,
+        "3": 37
+      }
+    },
+    "Validation": {
+      "slides": 30,
+      "patches": 277716,
+      "max_bag_patches": 31243,
+      "class_counts": {
+        "0": 20,
+        "1": 1,
+        "2": 5,
+        "3": 4
+      }
+    },
+    "Test": {
+      "slides": 200,
+      "patches": 2115002,
+      "max_bag_patches": 26953,
+      "class_counts": {
+        "0": 121,
+        "1": 16,
+        "2": 18,
+        "3": 45
+      }
+    }
+  },
+  "train_validation_case_overlap": 0,
+  "train_test_case_overlap": 0,
+  "validation_test_case_overlap": 0
+}

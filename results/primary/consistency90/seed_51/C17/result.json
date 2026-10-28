@@ -1,0 +1,30 @@
+{
+  "dataset": "CAMELYON17",
+  "dataset_key": "C17",
+  "run_mode": "extension",
+  "classes": 4,
+  "epochs": 30,
+  "best_epoch": 29,
+  "validation_slides": 30,
+  "test_slides": 200,
+  "validation_accuracy_pct": 89.99999761581421,
+  "test_accuracy_pct": 76.99999809265137,
+  "test_macro_auroc": 0.829971432685852,
+  "test_macro_f1": 0.49862590432167053,
+  "test_loss": 0.8312487305662671,
+  "validation_pngs": 30,
+  "warnings": [
+    "CAMELYON17 uses the supplied center-held-out test split and slide-level 4-class labels, not official challenge patient-level staging."
+  ],
+  "method": "abmil_consistency",
+  "training_extension": {
+    "method": "consistency",
+    "keep_fraction": 0.9,
+    "consistency_weight": 1.0,
+    "objective": "CrossEntropyLoss(full) + weight * KL(detached full || masked)",
+    "temperature": 1.0,
+    "sampling": "Uniform without replacement; max(1, floor(N * keep_fraction)).",
+    "mask_rng": "Dedicated CPU torch.Generator seeded with training_seed.",
+    "evaluation": "Full bags; no patch masking or consistency loss."
+  }
+}

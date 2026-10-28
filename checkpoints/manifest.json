@@ -1,0 +1,65 @@
+{
+  "baseline_seed42_C16.pt": {
+    "source_sha256": "c54c2eebbc823b400981fd2bd55a97f930502074d5512fc8c7993dd3f3f2dee3",
+    "packaged_sha256": "d1b65da6e20bc2e2fdd9329a2436d0033bc39971120839679a6697d0d4e952c0",
+    "state_tensors_sha256": "c20f85d58edf1d319c9d5f5aab70278dbe926abf42560d295d9d3a93ab9090f1",
+    "selected_epoch": 2,
+    "change": "Portable configuration only; all parameter tensors unchanged."
+  },
+  "baseline_seed42_C17.pt": {
+    "source_sha256": "9701c0ea047a1e3dcdcfcabde2096ce7d33dd5a6b60eed3279d58ee921c5b117",
+    "packaged_sha256": "2521d573712401218ed17e98f61f768a016a12a53e6449c412fcf778c20fd607",
+    "state_tensors_sha256": "6caabeac6e7e0c02ebc4cbda183471077b19408db70de24fc4307a7501ce0c6d",
+    "selected_epoch": 5,
+    "change": "Portable configuration only; all parameter tensors unchanged."
+  },
+  "baseline_seed42_BRACS.pt": {
+    "source_sha256": "b14ee9b0b5c1f25a0983ea86a3676b3d1f3a27e261f4069fd9e49a9e72aed83a",
+    "packaged_sha256": "1ab04f78cb5a511e204bc0a5e6db1fe0fa7b8301fd576cca4eaeddd935012b3f",
+    "state_tensors_sha256": "3a3d9ce3ab5235a0d69df5500cbc9ae3bd97b2c873298a413991fb9e0839b6dc",
+    "selected_epoch": 9,
+    "change": "Portable configuration only; all parameter tensors unchanged."
+  },
+  "consistency90_seed42_C16.pt": {
+    "source_sha256": "ba84b125a9e5729a75a0470976714ca4ba48ef8913a8ec931f3076933d872ccb",
+    "packaged_sha256": "25b24f5d26a4477b839da141598d53bc0f2ee470ed30052c5c36f88606e61a86",
+    "state_tensors_sha256": "d2075bfef4dd557012108dbb78e20ddfc18def6fe38c749eb4b65f9e62a73f27",
+    "selected_epoch": 2,
+    "change": "Portable configuration only; all parameter tensors unchanged."
+  },
+  "consistency90_seed42_C17.pt": {
+    "source_sha256": "4915f3295821a54fc5e143fa126b483bc2983ac1453305424ef2ec6ddf232594",
+    "packaged_sha256": "ea17e01c1fb72ef4e5a9a7afe96e44a2a686afdfd1fba9c0562bbd9982974dc6",
+    "state_tensors_sha256": "c9a039ef7fda69d81b8f82bdd87c1757bd42993b3e8e55f4942de79dab39d338",
+    "selected_epoch": 5,
+    "change": "Portable configuration only; all parameter tensors unchanged."
+  },
+  "consistency90_seed42_BRACS.pt": {
+    "source_sha256": "a5dbbda006f5f46d73d2430e592f27118c1255201bc4b7b006f66f23d291f013",
+    "packaged_sha256": "7ef87e55e18b77c471e39c8c02c390369d8f939cb9cffcfdee366c7c7b9d8fc4",
+    "state_tensors_sha256": "cd2269620e700f926077d3a58fab91eb3157d48f322076472c3ef490609a7ce4",
+    "selected_epoch": 9,
+    "change": "Portable configuration only; all parameter tensors unchanged."
+  },
+  "spatial_gated_seed42_C16.pt": {
+    "source_sha256": "80ce3430f5dcc0f12fde3b793664dd1a365f137fc4d188f5e826d7c866aea08e",
+    "packaged_sha256": "76a7249c415f36b583851493249eaf332252c1b2e10c9f227ccb04ca3c58e27e",
+    "state_tensors_sha256": "cfaa9b8beb72e92962d44585ee75d65f674b56baee5b17e509066a16b6cc566f",
+    "selected_epoch": 2,
+    "change": "Portable configuration only; all parameter tensors unchanged."
+  },
+  "spatial_gated_seed42_C17.pt": {
+    "source_sha256": "89a65132543a16da9adb79d62e1ca458fcd3bbc3e20f84d0ffc34f38f38b5074",
+    "packaged_sha256": "bc2166fee881b4f922e216a9c7c48ce8d21d05d364e9a9737b4d776b377251bf",
+    "state_tensors_sha256": "821e4bebaf8525925f510b7c3c2a27995e5e3a3f0f06036f7f23428fdd877420",
+    "selected_epoch": 20,
+    "change": "Portable configuration only; all parameter tensors unchanged."
+  },
+  "spatial_gated_seed42_BRACS.pt": {
+    "source_sha256": "77fac4204f4eb6155af41cac8b2e78a4ef7e330868622bfd3413b2464194846c",
+    "packaged_sha256": "cc5fcaa95f8c0fdd1a0a6a870331eadd799a13cdaa0dd03a002fe3fee2fe134d",
+    "state_tensors_sha256": "e5418d2c1a40a5599c0ddab2adfd52ef4ed55d6d3c09582079a3bf6f7f2b1b08",
+    "selected_epoch": 9,
+    "change": "Portable configuration only; all parameter tensors unchanged."
+  }
+}
