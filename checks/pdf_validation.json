@@ -1,12 +1,12 @@
 {
   "status": "passed",
   "pdf": "report/ECE1512_ProjectA_Report.pdf",
-  "source": "report/report_lecture.md",
+  "source": "report/report.md",
   "primary_guidance": "Lecture5_ProjectA.pdf, Assignment Outlines 1–3",
   "pages": 10,
   "limit": 20,
   "bytes": 2505913,
-  "sha256": "0de63649a3f78acecde077651b82af0eaf4646376a02d00c93082d541066d7a4",
+  "sha256": "15bdd558d7442e3b10e19c2a01048af13a3745af3f9ef8ea4b374dc66bb0ab86",
   "author": "Parteek Dheri",
   "vector_text": true,
   "all_pages_rendered_and_visually_inspected": true,
@@ -54,6 +54,11 @@
   "source_whitespace_check": "passed for Markdown and Python; generated PDF checked using PDF tools",
   "watermark": false,
   "temporary_conversion_script_removed": true,
+  "cleanup_rebuild": {
+    "single_canonical_source": true,
+    "document_content_and_layout_unchanged": true,
+    "page_renders_identical_to_previously_reviewed_pdf": 10
+  },
   "publication": "Prepared submission copy; final author review, evaluator access and Quercus upload remain manual.",
   "raw_features_bundled": false,
   "repository_url": "https://github.com/dheri/ECE1512_Project-A",

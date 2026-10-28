@@ -14,11 +14,20 @@ def sha256(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def validate_submission_scope(names):
+    for name in names:
+        path = Path(name)
+        if ("presentation" in path.parts or "poster" in path.name.lower()
+                or name == "report/report_lecture.md"):
+            raise ValueError(f"Out-of-scope presentation or legacy report artifact: {name}")
+
+
 def build(output):
     saved = json.loads(MANIFEST.read_text())
     current = {name: sha256(path) for name, path in files()}
     if current != saved:
         raise ValueError("Package differs from its manifest. Review changes before refreshing it.")
+    validate_submission_scope(saved)
     validation = json.loads((ROOT / "checks/pdf_validation.json").read_text())
     source_pdf = ROOT / validation["pdf"]
     if validation["status"] != "passed" or sha256(source_pdf) != validation["sha256"]:
@@ -56,6 +65,7 @@ def build(output):
         "status": "passed", "code_archive": archive.name, "zip_members": len(members),
         "all_zip_members_match_source_sha256": True, "zip_crc_check": "passed",
         "report": report.name, "report_pages": validation["pages"],
+        "submission_scope": "Report and code only; no presentation materials or legacy report source.",
         "sha256": checksums, "includes_git_or_raw_features": False,
         "new_scientific_training": False, "uploaded_or_pushed": False,
     }

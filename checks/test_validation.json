@@ -3,11 +3,11 @@
   "regression_suite": {
     "scope": "Final submission copy, including document, confusion-figure and scientific workflow tests.",
     "command": "python -m unittest discover -s tests -v",
-    "tests_at_time_of_run": 63,
-    "passed": 62,
+    "tests_at_time_of_run": 61,
+    "passed": 60,
     "skipped": 1,
     "skip_reason": "Optional real-feature forward test requires the unbundled course feature files.",
-    "duration_seconds": 90.120
+    "duration_seconds": 88.676
   },
   "submission_entry_points": {
     "command": "python -m unittest discover -s tests -p test_submission.py -v",
@@ -17,10 +17,10 @@
   },
   "document_builders": {
     "command": "python3 -m unittest discover -s tests -p test_documents.py -v",
-    "tests": 14,
-    "passed": 14,
+    "tests": 12,
+    "passed": 12,
     "included_in_regression_suite": true,
-    "scope": "Final ten-page report, unique class supports and submission-builder entry point; also passed independently on the host."
+    "scope": "Sole report source, report/code-only scope, active asset coverage, ten-page report, unique class supports and submission-builder entry point; also passed independently on the host."
   },
   "confusion_figures": {
     "command": "python -m unittest discover -s tests -p test_confusion_figures.py -v",
@@ -29,7 +29,7 @@
     "included_in_regression_suite": true,
     "scope": "All 90 saved test matrices; averaging, class support labels and tamper rejection."
   },
-  "total_passed": 62,
+  "total_passed": 60,
   "total_skipped": 1,
   "environment": {
     "python": "3.12.14",
@@ -37,5 +37,5 @@
     "device": "cpu"
   },
   "scientific_training_rerun": false,
-  "note": "All 63 tests ran together in the CPU container: 62 passed and the optional real-feature test skipped. All fourteen document tests also passed independently on the host. The saved-result audit passed with zero metric error. Synthetic workflow tests use tiny generated bags, not an additional scientific training cohort."
+  "note": "All 61 report/code tests ran together in the CPU container: 60 passed and the optional real-feature test skipped. All twelve document tests also passed independently on the host. Presentation tests and materials are maintained outside the submission. The saved-result audit passed with zero metric error. Synthetic workflow tests use tiny generated bags, not an additional scientific training cohort."
 }

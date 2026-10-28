@@ -6,8 +6,7 @@ ABMIL baseline evaluation on CAMELYON16, CAMELYON17 and BRACS, with full-to-mask
 
 ## Start here
 
-- **Report:** [PDF](report/ECE1512_ProjectA_Report.pdf), [current editable source](report/report_lecture.md), organized under Lecture 5's three assignment sections
-- **Final presentation:** [poster and oral-presentation materials](presentation/README.md)
+- **Report:** [PDF](report/ECE1512_ProjectA_Report.pdf), [editable source](report/report.md), organized under Lecture 5's three assignment sections
 - **Main evidence:** [90-run table](results/primary/all_runs.csv), [paired differences](results/primary/paired_comparison.csv)
 - **Completed notebook:** [ECE1512_ProjectA_Working.ipynb](ECE1512_ProjectA_Working.ipynb)
 - **Data acquisition and provenance:** [DATA.md](DATA.md)
@@ -15,6 +14,8 @@ ABMIL baseline evaluation on CAMELYON16, CAMELYON17 and BRACS, with full-to-mask
 - **Attribution:** [ATTRIBUTION.md](ATTRIBUTION.md)
 
 Repository: [dheri/ECE1512_Project-A](https://github.com/dheri/ECE1512_Project-A). This is the prepared submission copy; it has not been uploaded to Quercus. Complete the author's final review and ensure graders can access the repository before submitting.
+
+This repository is the **report-and-code submission only**. `report/report.md` is the sole report source. Presentation materials, superseded report drafts and unused draft figures/tables are maintained separately and are not included here.
 
 ## Study
 
@@ -34,7 +35,6 @@ All primary C17 partitions are patient-disjoint. The earlier 108 runs are kept u
 
 ```text
 report/                  Editable report, PDF, source figures and generated tables
-presentation/            Final poster, editable content, speaking notes and Q&A
 reference_splits/        Ordered final split lists and reference configurations
 dataset_csv/             Pseudonymous slide metadata used by the loader
 results/primary/         Results, histories and saved predictions for all 90 primary runs
@@ -42,12 +42,23 @@ results/historical/      Results and test predictions for 108 earlier supporting
 checkpoints/             Nine representative seed-42 checkpoints and their hashes
 provenance/              Source and artifact fingerprints
 checks/                  Saved audit and validation summaries
-scripts/                 Figure generation, report/poster builds and result audit
+scripts/                 Figure generation, report/ZIP builds and result audit
 tests/                   Synthetic model, objective and workflow tests
 reproduce.py             Portable, explicit new-training entry point
 ```
 
 Raw feature files, original WSIs, training logs, remote launch scripts and session notes are not included. The remaining 81 primary checkpoints and historical checkpoints are retained in the original experiment archive, not duplicated here. Saved predictions support metric verification without them.
+
+The saved results, configurations, split records and representative checkpoints support the report's claims and reproduction commands. Historical results support the explicitly separated earlier-controls discussion; they are not extra primary seeds. All report figures are used in the PDF, in the six-example attention audit, or as larger versions of the nine-panel confusion comparison.
+
+### Why `checks/` is included
+
+These small generated records document completed verification, not additional experiments:
+
+- `result_audit.json`: saved metrics, split separation, checkpoints and source fingerprints.
+- `confusion_validation.json`: all 90 confusion matrices checked against saved predictions.
+- `pdf_validation.json`: final report source, page count and PDF fingerprint; also used by the ZIP builder.
+- `test_validation.json`: test results and the optional real-feature skip.
 
 ## Environment
 
@@ -87,8 +98,6 @@ python scripts/build_report.py \
 
 The builder copies the verified PDF into `report/`. It checks the PDF signature, deliberate ten-page layout and the 20-page limit when `pdfinfo` is available. The architecture figure script draws the baseline and both adaptations. The confusion figure script validates all 90 saved test matrices against predictions, checks the reported accuracies, and generates the nine-panel comparison plus larger dataset-specific versions. Its `n` labels count unique slides per true class; cells show ten-seed mean row percentages, not an ensemble or ten times as many independent slides. These scripts need no features, inference or training.
 
-The final poster follows the supplied template's section headings and the lecture's 5120 × 2880, 10 MB digital limit. Rebuild instructions, speaking notes and Q&A preparation are in `presentation/README.md`.
-
 ## Reproduce training
 
 First obtain the exact feature files described in `DATA.md`. The default command starts the full fresh 90-run grid, in seed → dataset → method order:
@@ -126,7 +135,7 @@ The helper creates a temporary checkpoint/split directory and never changes the 
 
 ## Editing for review
 
-Edit `report/report_lecture.md` for the current report's prose, citations and layout. The previous longer draft remains in `report/report.md` for reference; it is not the source of the current PDF. Tables are generated from the saved results; do not hand-edit numerical values. Rebuild figures if their presentation changes, then rebuild the PDF and rerun the audit. The `<!-- page -->` and column markers define the editable page layout. Edit `presentation/poster.md` for poster text. Required citations and course-source attribution should remain intact.
+Edit `report/report.md` for the report's prose, citations and layout. Tables are generated from the saved results; do not hand-edit numerical values. Rebuild figures if their presentation changes, then rebuild the PDF and rerun the audit. The `<!-- page -->` and column markers define the editable page layout. Required citations and course-source attribution should remain intact.
 
 `python scripts/package_manifest.py` verifies the current package fingerprints. After an intentional reviewed edit, refresh them with `python scripts/package_manifest.py --write`.
 
@@ -141,4 +150,4 @@ python scripts/package_manifest.py
 python scripts/build_submission.py --output-dir outputs/submission
 ```
 
-The builder refuses to overwrite existing delivery files. It verifies every package fingerprint, copies the final report, builds `ECE1512_ProjectA_Code.zip`, and checks every ZIP member against its source hash. The ZIP contains this repository's packaged files, not `.git`, raw features, credentials, temporary files or new training outputs. Keep the separately supplied report PDF as the report submission. Poster materials are included in the code package for the later presentation requirement.
+The builder refuses to overwrite existing delivery files. It verifies every package fingerprint, rejects presentation artifacts and legacy report sources, copies the final report, builds `ECE1512_ProjectA_Code.zip`, and checks every ZIP member against its source hash. The ZIP contains this repository's packaged files, not `.git`, raw features, credentials, temporary files or new training outputs. Keep the separately supplied report PDF as the report submission. Presentation materials are excluded.

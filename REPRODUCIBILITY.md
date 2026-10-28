@@ -31,6 +31,7 @@
 - [x] Record dependency versions and GPU/CPU execution settings.
 - [x] Regenerate tables and analytical plots without training.
 - [x] Provide a manifest-verified submission archive builder and separate report PDF.
+- [x] Keep one authoritative report source and exclude presentation materials, legacy drafts and unused draft assets.
 - [x] Recompute saved metrics and verify representative artifact/source hashes.
 - [x] Run synthetic workflows without raw features; skip the clearly labeled optional real-data test when its files are absent.
 - [x] Require explicit confirmation and a new output directory before reproduction training.
@@ -39,7 +40,7 @@
 
 ## Validation scope
 
-The current report source is `report/report_lecture.md`; the earlier longer draft in `report/report.md` is retained for reference. Poster content, speaking notes and Q&A preparation are under `presentation/`. The poster uses the same primary results and fixed attention selection as the report; it is not a new experiment.
+The sole report source is `report/report.md`. The submission contains report/code materials only; presentation materials and superseded drafts are kept outside this repository. `checks/` records completed result, confusion, PDF and test verification. The archive builder rejects presentation artifacts and legacy report sources.
 
 The saved-result audit does not rerun neural inference on all original checkpoints. It verifies predictions, metrics, selected epochs, fingerprints and the representative checkpoint files. The original completed experiment collection was verified before packaging. CPU synthetic regression tests exercise small generated bags, not an additional experimental training cohort.
 
