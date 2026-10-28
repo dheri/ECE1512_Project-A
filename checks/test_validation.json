@@ -1,12 +1,13 @@
 {
   "status": "passed",
   "regression_suite": {
-    "scope": "Previous full regression run, before four additional document tests were added.",
+    "scope": "Final submission copy, including document, confusion-figure and scientific workflow tests.",
     "command": "python -m unittest discover -s tests -v",
-    "tests_at_time_of_run": 51,
-    "passed": 50,
+    "tests_at_time_of_run": 63,
+    "passed": 62,
     "skipped": 1,
-    "skip_reason": "Optional real-feature forward test requires the unbundled course feature files."
+    "skip_reason": "Optional real-feature forward test requires the unbundled course feature files.",
+    "duration_seconds": 90.120
   },
   "submission_entry_points": {
     "command": "python -m unittest discover -s tests -p test_submission.py -v",
@@ -16,13 +17,19 @@
   },
   "document_builders": {
     "command": "python3 -m unittest discover -s tests -p test_documents.py -v",
-    "tests": 12,
-    "passed": 12,
-    "included_in_regression_suite": false,
-    "previous_full_suite_document_tests": 8,
-    "scope": "Latest targeted run on the final nine-page report source; all twelve passed."
+    "tests": 14,
+    "passed": 14,
+    "included_in_regression_suite": true,
+    "scope": "Final ten-page report, unique class supports and submission-builder entry point; also passed independently on the host."
   },
-  "total_passed": 50,
+  "confusion_figures": {
+    "command": "python -m unittest discover -s tests -p test_confusion_figures.py -v",
+    "tests": 6,
+    "passed": 6,
+    "included_in_regression_suite": true,
+    "scope": "All 90 saved test matrices; averaging, class support labels and tamper rejection."
+  },
+  "total_passed": 62,
   "total_skipped": 1,
   "environment": {
     "python": "3.12.14",
@@ -30,5 +37,5 @@
     "device": "cpu"
   },
   "scientific_training_rerun": false,
-  "note": "The previous full run contained 51 tests: 50 passed and one optional real-feature test skipped. The totals above refer to that run. This report-only revision added four document tests and reran all twelve document tests successfully on the host, plus the saved-result audit. The unchanged scientific regression suite was not rerun. No new scientific training was performed."
+  "note": "All 63 tests ran together in the CPU container: 62 passed and the optional real-feature test skipped. All fourteen document tests also passed independently on the host. The saved-result audit passed with zero metric error. Synthetic workflow tests use tiny generated bags, not an additional scientific training cohort."
 }
