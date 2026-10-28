@@ -4,6 +4,8 @@
 
 - [x] Define bag/instance supervision and distinguish slide prediction from localization.
 - [x] Review the five required methods using original papers.
+- [x] Attribute the two adaptations to relevant consistency, masked-MIL, spatial-graph and gating literature; distinguish their implementations from prior methods.
+- [x] Include original, reproducible architecture figures for the baseline and both adaptations.
 - [x] State available feature counts, dimensions, split sizes and uncertain provenance.
 - [x] Describe the encoder/aggregator/classifier and all actual training settings.
 - [x] Report baseline accuracy, macro AUROC, macro F1, test CE and loss curves.

@@ -70,6 +70,7 @@ Run from the repository root:
 python -m unittest discover -s tests -v
 python scripts/audit_results.py
 python scripts/make_figures.py
+python scripts/make_architecture_figures.py
 ```
 
 The real-feature forward test skips clearly when external course features are absent. The included synthetic workflows remain enabled. The audit recomputes both validation and test metrics for every primary run, checks all selected epochs, ordered partitions, paired rows, sample SDs, source fingerprints and representative checkpoint hashes. It also recomputes test metrics for the 108 historical runs. It needs no raw features and performs no scientific training.
@@ -83,7 +84,7 @@ python scripts/build_report.py \
   --output "$(pwd)/outputs/ECE1512_ProjectA_Report.pdf"
 ```
 
-The builder copies the verified PDF into `report/`. It checks the PDF signature, deliberate eight-page layout and the 20-page limit when `pdfinfo` is available. Inspect the resulting pages after substantive edits; passing the page-count check alone does not prove good layout.
+The builder copies the verified PDF into `report/`. It checks the PDF signature, deliberate nine-page layout and the 20-page limit when `pdfinfo` is available. The architecture figure script draws the baseline, masked-view training and spatial adapter without data or training. Inspect the resulting pages after substantive edits; passing the page-count check alone does not prove good layout.
 
 The final poster follows the supplied template's section headings and the lecture's 5120 × 2880, 10 MB digital limit. Rebuild instructions, speaking notes and Q&A preparation are in `presentation/README.md`.
 

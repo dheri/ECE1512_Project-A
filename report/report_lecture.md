@@ -12,6 +12,7 @@ Repository: https://github.com/dheri/ECE1512_Project-A
 
 Whole-slide images contain many patches but usually have only a slide-level diagnosis. Multiple instance learning (MIL) treats each slide as a variable-size bag. Learned aggregation can retain diagnostic evidence that mean pooling dilutes or max pooling discards.
 
+<!-- table-widths: 20,25,55 -->
 | Method | Problem addressed | Main contribution |
 | --- | --- | --- |
 | ABMIL [1] | Fixed pooling ignores task-specific patch importance. | Learns normalized attention weights and a weighted bag representation from slide labels; gated attention combines tanh and sigmoid features. |
@@ -26,7 +27,7 @@ Whole-slide images contain many patches but usually have only a slide-level diag
 
 **Research question 2.** Can a small, gated neighborhood residual improve ABMIL while retaining its pooling and classifier?
 
-The first question tests a training objective; the second tests local patch interaction. Both are implemented. They are not reproductions of the four more complex literature methods.
+The first question tests a training objective; the second tests local patch interaction. Both are implemented as adaptations of established consistency [11,12] and neighborhood/gating principles [13,14,15], not new mechanisms or reproductions of the reviewed architectures.
 
 <!-- page -->
 ## 2. Complete the provided notebook: ABMIL baseline
@@ -40,17 +41,9 @@ Table 1. Course feature bags and frozen partitions. Classes: C16 = 2, C17 = 4, B
 
 **Model.** Each slide passes through a learned feature projection, gated-attention aggregator and linear classifier [1].
 
-> Frozen patch features (N × 384) -> Linear + ReLU (N × 256) -> gated attention (128 hidden units) -> weighted bag vector (256) -> class logits (2 / 4 / 7).
+![Figure 1. Implemented gated ABMIL architecture [1]. The tanh and sigmoid branches multiply elementwise before scoring. Attention weights alpha_i pool the projected features h_i; C = 2, 4 or 7.](figures/architecture_baseline.png)
 
-The projection adapts the supplied features; it does not retrain an image encoder. Attention learns which patches contribute to the bag representation. The classifier converts that representation into slide-level predictions:
-
-> h_i = ReLU(W_p x_i + b_p)
-
-> s_i = w^T[tanh(V h_i + b_v) * sigmoid(U h_i + b_u)] + b_s
-
-> alpha_i = softmax(s)_i;  z = sum_i alpha_i h_i;  logits = W_c z + b_c
-
-Here `*` denotes elementwise multiplication. Weights sum to one over real patches. Padding is masked before softmax; reordering real patches does not change the prediction.
+The projection, attention and classifier are trainable; the image encoder is not retrained. Pooling gives z = sum_i alpha_i h_i. Weights sum to one over real patches; padding is masked before softmax. Reordering real patches does not change the prediction.
 
 **Training and evaluation.**
 
@@ -62,8 +55,6 @@ Here `*` denotes elementwise multiplication. Weights sum to one over real patche
 
 **C17 patient separation.** Centers 3–4 remain test data. Development centers 0–2 use the first valid fold of stratified, patient-grouped ten-fold splitting with random seed 42: 54/6/40 train/validation/test patients, with no overlap. Test slides and their order are unchanged. C16 and BRACS retain their frozen partitions.
 
-**Notebook completion.** Model, supervised training, validation/test and attention visualization TODOs are completed. The runnable notebook loads the final frozen splits. Synthetic tests cover class dimensions, attention normalization, masking and permutation behavior; saved-result audits check metrics and checkpoint selection.
-
 <!-- page -->
 ## 2. Complete the provided notebook: baseline results
 ### 2.2 Test performance and learning curves
@@ -72,7 +63,7 @@ Table 2. ABMIL test results across ten seeds. Accuracy is percent; other metrics
 
 {{table:baseline}}
 
-![Figure 1. Baseline curves: epoch-wise mean ± one sample SD across ten seeds. Columns show cross-entropy, accuracy and validation checkpoint metrics. Each run selects its checkpoint independently using validation data.](figures/baseline_learning_curves.png)
+![Figure 2. Baseline curves: epoch-wise mean ± one sample SD across ten seeds. Columns show cross-entropy, accuracy and validation checkpoint metrics. Each run selects its checkpoint independently using validation data.](figures/baseline_learning_curves.png)
 
 **Observations.**
 
@@ -88,11 +79,11 @@ These results motivate testing regularization and patch interaction, not selecti
 
 The examples use primary ABMIL seed 42: the first validation slide in saved order with label C16 = 1, C17 = 1 and BRACS = 6. Selection does not use correctness, confidence or attention.
 
-![Figure 2(a). C16 baseline. Left: attention at patch coordinates. Middle: cumulative attention mass. Right: within-slide attention percentiles.](figures/C16_baseline_seed42_validation.png)
+![Figure 3(a). C16 baseline. Left: attention at patch coordinates. Middle: cumulative attention mass. Right: within-slide attention percentiles.](figures/C16_baseline_seed42_validation.png)
 
-![Figure 2(b). C17 baseline. This is the only class-1 validation slide; it is predicted as class 2.](figures/C17_baseline_seed42_validation.png)
+![Figure 3(b). C17 baseline. This is the only class-1 validation slide; it is predicted as class 2.](figures/C17_baseline_seed42_validation.png)
 
-![Figure 2(c). BRACS baseline. Numeric class IDs are retained because their diagnostic-name mapping has not been independently verified.](figures/BRACS_baseline_seed42_validation.png)
+![Figure 3(c). BRACS baseline. Numeric class IDs are retained because their diagnostic-name mapping has not been independently verified.](figures/BRACS_baseline_seed42_validation.png)
 
 **Interpretation.** High attention identifies candidate patches for review, not proven tumor. These are coordinate maps, not tissue-image overlays. Attention is relative within a slide, and percentile colors are ranks rather than tumor probabilities. Without region annotations, localization accuracy, segmentation quality and causal faithfulness cannot be established.
 
@@ -104,7 +95,11 @@ The examples use primary ABMIL seed 42: the first validation slide in saved orde
 
 **Motivation and design.** A slide's diagnosis may be stable to a small random deletion. Encouraging agreement could reduce reliance on an accidental patch subset without adding inference parameters. However, deleting rare diagnostic patches can violate that assumption.
 
-For every training bag, retain max(1, floor(0.9N)) patches, sampled uniformly without replacement. Let p be the full-bag prediction and q the retained-view prediction:
+**Prior work and scope.** UDA uses detached original-input targets for augmentation consistency [11]. MHIM-MIL applies masked-instance mining and teacher–student consistency to WSI classification [12]. Unlike our variant, it uses attention-guided masking, an EMA teacher, bag-representation consistency and supervised classification on the masked student. Our experiment tests uniform random deletion and class-probability consistency within one ABMIL model, not a reproduction of either method.
+
+![Figure 4. Masked-view training, related to consistency learning [11] and masked teacher–student MIL [12]. Both passes share the same current ABMIL parameters. The full prediction is detached only for KL; hard-label CE applies only to the full bag.](figures/architecture_consistency.png)
+
+For every training bag, retain N′ = max(1, floor(0.9N)) patches, sampled uniformly without replacement. Let p be the full-bag prediction and q the retained-view prediction:
 
 > L = CE(y, p) + KL(stopgrad(p) || q)
 
@@ -112,11 +107,17 @@ The KL weight and temperature are both 1. The full prediction is a detached targ
 
 **Expected benefit:** useful regularization at unchanged inference cost. **Risk:** the loss may be redundant or discourage sensitivity to sparse diagnostic evidence.
 
+<!-- page -->
+## 3. Propose two research ideas and evaluate them
 ### 3.2 Idea 2: gated local spatial context
 
 **Question.** Does nearby patch context improve ABMIL without replacing its aggregator?
 
 **Motivation and design.** Tissue neighborhoods may disambiguate a patch. A residual gate allows context to be added selectively rather than forcing every patch to use it.
+
+**Prior work and scope.** Patch-GCN builds eight-neighbor spatial WSI graphs and combines message passing with attention pooling for survival prediction [13]. Mean-neighbor aggregation and self–neighbor feature combination have precedent in GraphSAGE [14]; learned transformed/bypass gating has precedent in Highway Networks [15]. Our single residual adapter is not Patch-GCN, GraphSAGE or an exact Highway layer: it keeps the identity path unscaled and gates only the added correction.
+
+![Figure 5. Implemented spatial adapter, related to [13,14,15]. The scalar gate scales a 256-dimensional residual correction. The ABMIL head retains its separate attention gate (Figure 1).](figures/architecture_spatial.png)
 
 For patch i, average the projected features of up to eight nearest other patches in the supplied coordinate frame. Concatenate that mean m_i with h_i:
 
@@ -150,7 +151,7 @@ Table 4. Paired extension-minus-baseline changes. Accuracy uses percentage point
 
 **Consistency.** Accuracy changes are −0.39, −0.35 and +0.47 pp. This setting gives no broad advantage. It is a negative result for 90% retention and unit KL weight, not evidence that every consistency objective fails.
 
-![Figure 3. Same C17 slide: spatial predicts true class 1; baseline predicts class 2. Localization remains unverified.](figures/C17_spatial_gated_seed42_validation.png)
+![Figure 6. Same C17 slide: spatial predicts true class 1; baseline predicts class 2. Localization remains unverified.](figures/C17_spatial_gated_seed42_validation.png)
 
 <!-- page -->
 ## 3. Propose two research ideas and evaluate them
@@ -179,11 +180,13 @@ Table 5. C17 mean per-seed class recall; support is fixed across seeds.
 <!-- page -->
 ## Reproducibility and references
 
-**Report checklist.** Five-paper comparison and research questions; baseline model/training; splits and checkpoint rule; test metrics and curves; attention selection; both proposal designs; paired results, negative findings and limitations are documented.
+**Report checklist.** Five-paper comparison and research questions; baseline model/training; splits and checkpoint rule; test metrics and curves; attention selection; architecture figures and prior-work attribution; both proposal designs; paired results, negative findings and limitations are documented.
 
 **Code checklist.** Completed notebook, frozen splits, 90 primary prediction/history sets, 108 separate historical result sets, nine representative seed-42 checkpoints, figure sources, tests and result audit are included. Raw features/WSIs and the other checkpoints are not bundled. See `DATA.md` and `REPRODUCIBILITY.md`.
 
 Repository: https://github.com/dheri/ECE1512_Project-A
+
+**Attribution and inspection.** Course starter materials [10] supply the notebook structure and utilities; model/training/evaluation TODOs were completed and the pipeline extended. The two extensions adapt established principles [11]–[15] rather than reproduce those architectures. Architecture figures were drawn for this implementation; published figures and code from these five papers were not copied. Use `scripts/audit_results.py` to check saved results and the figure scripts to regenerate diagrams and plots. New training requires `reproduce.py --confirm-training` and separately acquired features.
 
 <!-- columns -->
 [1] M. Ilse, J. M. Tomczak, and M. Welling, “Attention-based deep multiple instance learning,” ICML, PMLR 80, pp. 2127–2136, 2018. https://proceedings.mlr.press/v80/ilse18a.html
@@ -196,20 +199,24 @@ Repository: https://github.com/dheri/ECE1512_Project-A
 
 [5] H. Zhang et al., “DTFD-MIL: Double-tier feature distillation multiple instance learning for histopathology whole slide image classification,” CVPR, pp. 18802–18812, 2022. https://openaccess.thecvf.com/content/CVPR2022/html/Zhang_DTFD-MIL_Double-Tier_Feature_Distillation_Multiple_Instance_Learning_for_Histopathology_Whole_CVPR_2022_paper.html
 
-<!-- column -->
 [6] B. Ehteshami Bejnordi et al., “Diagnostic assessment of deep learning algorithms for detection of lymph node metastases in women with breast cancer,” JAMA 318(22), pp. 2199–2210, 2017. doi: 10.1001/jama.2017.14585.
 
 [7] P. Bandi et al., “From detection of individual metastases to classification of lymph node status at the patient level: The CAMELYON17 challenge,” IEEE TMI 38(2), pp. 550–560, 2019. doi: 10.1109/TMI.2018.2867350.
 
 [8] N. Brancati et al., “BRACS: A dataset for BReAst carcinoma subtyping in H&E histology images,” Database, baac093, 2022. doi: 10.1093/database/baac093.
 
+<!-- column -->
 [9] L. Ye, “WSI Feature,” version 1, Zenodo, October 4, 2026. https://zenodo.org/records/23130543
 
 [10] L. Ye, “ECE1512 Project A: Whole-Slide Image Multiple Instance Learning,” Lecture 5 and supplied starter materials, University of Toronto, October 7, 2026.
 
-### Attribution and inspection
+[11] Q. Xie et al., “Unsupervised data augmentation for consistency training,” NeurIPS, 2020. https://proceedings.neurips.cc/paper/2020/hash/44feb0096faa8326192570788b38c1d1-Abstract.html
 
-The baseline notebook structure and provided utilities come from the course starter materials [10]; missing model/training/evaluation parts were completed and the pipeline extended. The proposed extensions do not reproduce the four other literature architectures.
+[12] W. Tang et al., “Multiple instance learning framework with masked hard instance mining for whole slide image classification,” ICCV, pp. 4078–4087, 2023. https://openaccess.thecvf.com/content/ICCV2023/html/Tang_Multiple_Instance_Learning_Framework_with_Masked_Hard_Instance_Mining_for_ICCV_2023_paper.html
 
-Use `scripts/audit_results.py` to verify saved results and `scripts/make_figures.py` to regenerate tables and plots without training. New training requires `reproduce.py --confirm-training` and separately acquired features. Report and code are separate artifacts.
+[13] R. J. Chen et al., “Whole slide images are 2D point clouds: Context-aware survival prediction using patch-based graph convolutional networks,” MICCAI, pp. 339–349, 2021. doi: 10.1007/978-3-030-87237-3_33.
+
+[14] W. L. Hamilton, R. Ying, and J. Leskovec, “Inductive representation learning on large graphs,” NeurIPS, 2017. https://arxiv.org/abs/1706.02216
+
+[15] R. K. Srivastava, K. Greff, and J. Schmidhuber, “Highway networks,” arXiv:1505.00387, 2015. https://arxiv.org/abs/1505.00387
 <!-- /columns -->
